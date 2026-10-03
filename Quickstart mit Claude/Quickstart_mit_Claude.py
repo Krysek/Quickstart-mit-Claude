@@ -9,9 +9,12 @@ Steuerung:
     Pfeil hoch          Stein drehen
     Pfeil runter        Stein schneller fallen lassen (+1 Punkt pro Zeile)
     Leertaste           Stein sofort fallen lassen (+2 Punkte pro Zeile)
-    P                   Pause ein/aus
+    Esc oder P          Pausenmenü öffnen/schließen (bei Game Over: Beenden)
     R                   Neues Spiel
-    Esc                 Beenden
+
+Im Pausenmenü:
+    Pfeil hoch/runter   Eintrag wählen (Weiter, Neustart, Beenden)
+    Enter oder Leertaste  Eintrag ausführen
 
 Start:
     python Quickstart_mit_Claude.py
@@ -41,6 +44,9 @@ SHAPES = [
 
 # Punkte für 0, 1, 2, 3 oder 4 gleichzeitig gelöschte Reihen (mal Level).
 LINE_SCORES = [0, 100, 300, 500, 800]
+
+# Einträge des Pausenmenüs, in der angezeigten Reihenfolge.
+MENU_ITEMS = ["Weiter", "Neustart", "Beenden"]
 
 
 def rotate(shape):
@@ -76,7 +82,8 @@ class Tetris:
         next_shape: Form des nächsten Steins (für die Vorschau).
         bag: Noch nicht verteilte Formen der aktuellen 7er-Runde.
         score, lines, level: Punktestand, gelöschte Reihen, aktuelles Level.
-        paused: True, solange das Spiel pausiert ist.
+        paused: True, solange das Spiel pausiert ist und das Pausenmenü zeigt.
+        menu_index: Index des im Pausenmenü ausgewählten Eintrags.
         game_over: True, sobald ein neuer Stein keinen Platz mehr hat.
         clearing: Zeilennummern der Reihen, die gerade animiert gelöscht werden.
         flash: True, wenn die zu löschenden Reihen gerade als Umriss blinken.
@@ -123,6 +130,7 @@ class Tetris:
         self.lines = 0
         self.level = 1
         self.paused = False
+        self.menu_index = 0
         self.game_over = False
         self.bag = []
         self.next_shape = self.take_from_bag()
@@ -347,27 +355,30 @@ class Tetris:
     def on_key(self, event):
         """Reagiert auf Tastendrücke (Belegung siehe Modul-Docstring).
 
-        Esc und R funktionieren immer. Alle anderen Tasten sind bei Game Over
-        und während der Lösch-Animation gesperrt, in der Pause funktioniert
-        nur P.
+        Ist das Pausenmenü offen, gehen alle Tasten an :meth:`on_menu_key`.
+        R funktioniert immer. Esc und P öffnen im laufenden Spiel das
+        Pausenmenü, bei Game Over beendet Esc das Programm. Während der
+        Lösch-Animation sind alle Tasten außer R gesperrt.
 
         Args:
             event: Das tkinter-Tastaturereignis.
         """
         key = event.keysym.lower()
-        if key == "escape":
-            self.root.destroy()
+        if self.paused:
+            self.on_menu_key(key)
             return
         if key == "r":
             self.new_game()
             return
+        if key == "escape" and self.game_over:
+            self.root.destroy()
+            return
         if self.game_over or self.clearing:
             return
-        if key == "p":
-            self.paused = not self.paused
-        elif self.paused:
+        if key in ("escape", "p"):
+            self.open_menu()
             return
-        elif key == "left":
+        if key == "left":
             self.move(-1, 0)
         elif key == "right":
             self.move(1, 0)
@@ -379,6 +390,52 @@ class Tetris:
         elif key == "space":
             self.hard_drop()
         self.draw()
+
+    # --- Pausenmenü --------------------------------------------------------
+
+    def open_menu(self):
+        """Pausiert das Spiel und zeigt das Pausenmenü mit "Weiter" ausgewählt."""
+        self.paused = True
+        self.menu_index = 0
+        self.draw()
+
+    def close_menu(self):
+        """Schließt das Pausenmenü und setzt das Spiel fort."""
+        self.paused = False
+        self.draw()
+
+    def on_menu_key(self, key):
+        """Verarbeitet Tastendrücke, solange das Pausenmenü offen ist.
+
+        Pfeil hoch/runter wechseln den Eintrag (am Ende geht es oben weiter),
+        Enter oder Leertaste führen ihn aus. Esc und P schließen das Menü,
+        R startet direkt neu.
+
+        Args:
+            key: Name der gedrückten Taste in Kleinbuchstaben (tkinter-keysym).
+        """
+        if key in ("escape", "p"):
+            self.close_menu()
+        elif key == "r":
+            self.new_game()
+        elif key == "up":
+            self.menu_index = (self.menu_index - 1) % len(MENU_ITEMS)
+            self.draw()
+        elif key == "down":
+            self.menu_index = (self.menu_index + 1) % len(MENU_ITEMS)
+            self.draw()
+        elif key in ("return", "kp_enter", "space"):
+            self.select_menu_item()
+
+    def select_menu_item(self):
+        """Führt den ausgewählten Menüeintrag aus: Weiter, Neustart oder Beenden."""
+        item = MENU_ITEMS[self.menu_index]
+        if item == "Weiter":
+            self.close_menu()
+        elif item == "Neustart":
+            self.new_game()
+        elif item == "Beenden":
+            self.root.destroy()
 
     # --- Zeichnen ----------------------------------------------------------
 
@@ -438,16 +495,41 @@ class Tetris:
         cv.create_text(tx, 150, anchor="nw", text=info, fill=FG, font=FONT)
 
         help_text = ("← →  Bewegen\n↑    Drehen\n↓    Schneller\n"
-                     "Leer Fallen\nP    Pause\nR    Neustart\nEsc  Beenden")
+                     "Leer Fallen\nEsc  Pausenmenü\nR    Neustart")
         cv.create_text(tx, ROWS * CELL - 20, anchor="sw", text=help_text,
                        fill=FG, font=("Courier", 10))
 
-        # Overlay für Pause / Game Over
-        if self.paused or self.game_over:
-            msg = "GAME OVER\n\nR = Neustart" if self.game_over else "PAUSE"
-            cy = ROWS * CELL // 2
+        # Overlay für Pausenmenü / Game Over
+        cy = ROWS * CELL // 2
+        if self.paused:
+            self.draw_menu()
+        elif self.game_over:
             cv.create_rectangle(20, cy - 60, width - 20, cy + 60, fill=BG, outline=FG, width=2)
-            cv.create_text(width // 2, cy, text=msg, fill=FG, font=BIG_FONT, justify="center")
+            cv.create_text(width // 2, cy - 15, text="GAME OVER", fill=FG, font=BIG_FONT)
+            cv.create_text(width // 2, cy + 30, text="R = Neustart   Esc = Beenden",
+                           fill=FG, font=("Courier", 10))
+
+    def draw_menu(self):
+        """Zeichnet das Pausenmenü mittig über das Spielfeld.
+
+        Der ausgewählte Eintrag wird invertiert dargestellt (schwarze Schrift
+        auf weißem Balken), die übrigen weiß auf schwarz.
+        """
+        cv = self.canvas
+        width = COLS * CELL
+        cx, cy = width // 2, ROWS * CELL // 2
+        cv.create_rectangle(20, cy - 120, width - 20, cy + 120, fill=BG, outline=FG, width=2)
+        cv.create_text(cx, cy - 80, text="PAUSE", fill=FG, font=BIG_FONT)
+
+        for i, item in enumerate(MENU_ITEMS):
+            iy = cy - 25 + i * 45
+            selected = i == self.menu_index
+            if selected:
+                cv.create_rectangle(50, iy - 17, width - 50, iy + 17, fill=FG, outline=FG)
+            cv.create_text(cx, iy, text=item, fill=BG if selected else FG, font=FONT)
+
+        cv.create_text(cx, cy + 100, text="↑ ↓ Wählen   Enter OK", fill=FG,
+                       font=("Courier", 10))
 
 
 def main():
