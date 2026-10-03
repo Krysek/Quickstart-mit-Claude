@@ -9,7 +9,8 @@ Steuerung:
     Pfeil hoch          Stein drehen
     Pfeil runter        Stein schneller fallen lassen (+1 Punkt pro Zeile)
     Leertaste           Stein sofort fallen lassen (+2 Punkte pro Zeile)
-    Esc oder P          Pausenmenü öffnen/schließen (bei Game Over: Beenden)
+    Esc oder P          Pausenmenü öffnen/schließen
+    Esc bei Game Over   Beenden
     R                   Neues Spiel
 
 Im Pausenmenü:
@@ -87,6 +88,7 @@ class Tetris:
         game_over: True, sobald ein neuer Stein keinen Platz mehr hat.
         clearing: Zeilennummern der Reihen, die gerade animiert gelöscht werden.
         flash: True, wenn die zu löschenden Reihen gerade als Umriss blinken.
+        anim_frame: Nummer des aktuellen Schritts der Lösch-Animation.
         job: ID des geplanten nächsten :meth:`tick` (oder None).
         anim_job: ID des geplanten nächsten Animationsschritts (oder None).
     """
@@ -248,7 +250,7 @@ class Tetris:
     # --- Animation beim Löschen voller Reihen ------------------------------
 
     BLINK_FRAMES = 6    # 3x blinken
-    WIPE_FRAMES = COLS // 2   # danach von der Mitte nach außen auflösen
+    WIPE_FRAMES = (COLS + 1) // 2   # danach von der Mitte nach außen auflösen
 
     def start_clear_animation(self, rows):
         """Startet die Animation für volle Reihen und hält das Spiel an.
@@ -271,7 +273,8 @@ class Tetris:
         1. Blinken (``BLINK_FRAMES`` Schritte à 70 ms): Die Reihen wechseln
            zwischen gefüllt und nur Umriss.
         2. Auflösen (``WIPE_FRAMES`` Schritte à 40 ms): Pro Schritt
-           verschwindet links und rechts der Mitte je eine Spalte.
+           verschwindet links und rechts der Mitte je eine Spalte. Bei
+           ungerader Spaltenzahl verschwindet zuerst die mittlere Spalte.
 
         Danach ruft sie :meth:`finish_clear` auf.
         """
@@ -283,7 +286,7 @@ class Tetris:
             self.flash = False
             k = frame - self.BLINK_FRAMES
             for r in self.clearing:
-                self.board[r][COLS // 2 - 1 - k] = 0
+                self.board[r][(COLS - 1) // 2 - k] = 0
                 self.board[r][COLS // 2 + k] = 0
             delay = 40
         else:
