@@ -1,7 +1,7 @@
 # 🧱 Tetris in Schwarz/Weiß
 
-Ein schlichtes, vollständig spielbares **Tetris** in Python – in einer einzigen
-Datei, ohne externe Abhängigkeiten. Gezeichnet wird mit `tkinter`, das bei
+Ein schlichtes, vollständig spielbares **Tetris** in Python – ohne externe
+Abhängigkeiten. Gezeichnet wird mit `tkinter`, das bei
 Python schon dabei ist.
 
 Entstanden als Quickstart-Projekt zum Programmieren mit
@@ -35,6 +35,7 @@ Entstanden als Quickstart-Projekt zum Programmieren mit
 - **Level-System**: Alle 10 Reihen steigt das Level, und die Steine fallen schneller
 - **Pausenmenü** mit *Weiter*, *Neustart* und *Beenden*
 - Komplett auf Deutsch, durchgehend mit Docstrings kommentiert
+- Spiellogik getrennt von der Oberfläche und mit **Unit-Tests** abgesichert
 
 ## 🚀 Starten
 
@@ -52,6 +53,15 @@ python "Quickstart mit Claude/Quickstart_mit_Claude.py"
 
 Alternativ lässt sich die Projektmappe `Quickstart mit Claude.sln` in
 **Visual Studio** öffnen und dort mit <kbd>F5</kbd> starten.
+
+## 🧪 Tests
+
+Die Tests nutzen nur `unittest` aus der Standardbibliothek:
+
+```bash
+cd "Quickstart mit Claude"
+python -m unittest -v
+```
 
 ## 🎮 Steuerung
 
@@ -87,7 +97,11 @@ bis zum Minimum von 80 ms.
 ```
 .
 ├── Quickstart mit Claude/
-│   ├── Quickstart_mit_Claude.py    # das komplette Spiel
+│   ├── Quickstart_mit_Claude.py    # Startpunkt: TetrisApp (Tastatur, Timer)
+│   ├── model.py                    # Spielregeln: Piece, Board, Bag, Game
+│   ├── menu.py                     # Pausenmenü: PauseMenu
+│   ├── view.py                     # Zeichnen: Renderer, ClearAnimation
+│   ├── test_tetris.py              # Unit-Tests
 │   └── Quickstart mit Claude.pyproj
 ├── docs/
 │   └── Diagramme.md                # Klassen- und Ablaufdiagramme (Mermaid)
@@ -96,9 +110,24 @@ bis zum Minimum von 80 ms.
 
 ## 🔍 Wie es funktioniert
 
-Das ganze Spiel steckt in der Klasse `Tetris`. Es gibt keine eigene
-Spielschleife: `root.mainloop()` von tkinter wartet auf Ereignisse und ruft drei
-Callbacks auf, die sich über Timer (`root.after`) immer wieder selbst anmelden:
+Das Spiel ist in Logik und Oberfläche aufgeteilt:
+
+| Klasse | Modul | Aufgabe |
+|---|---|---|
+| `Piece` | `model.py` | Ein Stein: Form und Position, verschieben und drehen |
+| `Board` | `model.py` | Das Spielfeld: Kollisionen, Steine absetzen, volle Reihen |
+| `Bag` | `model.py` | Der 7er-Beutel für die nächsten Steine |
+| `Game` | `model.py` | Die Regeln: Punkte, Level, Zustand (`GameState`) |
+| `PauseMenu` | `menu.py` | Einträge und Auswahl des Pausenmenüs |
+| `ClearAnimation` | `view.py` | Fortschritt der Lösch-Animation |
+| `Renderer` | `view.py` | Zeichnet alles auf den tkinter-Canvas |
+| `TetrisApp` | `Quickstart_mit_Claude.py` | Verbindet alles: Tastatur und Timer |
+
+`model.py` und `menu.py` kennen kein tkinter. Deshalb lassen sie sich ohne
+Fenster testen.
+
+Es gibt keine eigene Spielschleife: `root.mainloop()` von tkinter wartet auf
+Ereignisse und ruft in der `TetrisApp` drei Callbacks auf:
 
 - `tick()` – der Spieltakt, lässt den Stein eine Zeile fallen
 - `on_key()` – verarbeitet die Tastatureingaben
@@ -109,11 +138,13 @@ Ausführliche Klassen- und Ablaufdiagramme gibt es in
 
 ## ⚙️ Anpassen
 
-Größe und Aussehen lassen sich über die Konstanten am Anfang der Datei ändern:
+Größe und Aussehen lassen sich über Konstanten ändern, die Spielfeldgröße in
+`model.py` und das Aussehen in `view.py`:
 
 ```python
-COLS, ROWS = 10, 20          # Größe des Spielfelds in Zellen
-CELL = 30                    # Kantenlänge einer Zelle in Pixeln
+COLS, ROWS = 10, 20          # model.py: Größe des Spielfelds in Zellen
+
+CELL = 30                    # view.py: Kantenlänge einer Zelle in Pixeln
 PANEL = 180                  # Breite der Seitenleiste in Pixeln
 BG, FG = "black", "white"    # Hintergrund- und Vordergrundfarbe
 ```

@@ -22,6 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Quickstart_mit_Claude.py" />
+    <Compile Include="menu.py" />
+    <Compile Include="model.py" />
+    <Compile Include="test_tetris.py" />
+    <Compile Include="view.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
