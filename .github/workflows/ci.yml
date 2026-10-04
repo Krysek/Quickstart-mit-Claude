@@ -1,8 +1,9 @@
 # Automatische Prüfungen bei jedem Push und Pull Request.
 #
 #   test    Unit-Tests und Typprüfung (mypy --strict) mit mehreren Python-Versionen
-#   docs    baut die Dokumentations-Website (mkdocs build --strict) und stellt
-#           sie im Lauf unter "Artifacts" als ZIP "dokumentation" bereit
+#   docs    prüft, ob docs/ zum Quelltext passt (tools/gen_docs.py --check),
+#           baut die Website (mkdocs build --strict) und stellt sie im Lauf
+#           unter "Artifacts" als ZIP "dokumentation" bereit
 #   deploy  veröffentlicht die Website auf GitHub Pages; ist ausgeschaltet, bis
 #           in den Repository-Einstellungen die Variable PAGES_ENABLED = true
 #           gesetzt ist (Settings → Secrets and variables → Actions → Variables).
@@ -53,6 +54,8 @@ jobs:
           cache-dependency-path: requirements-dev.txt
       - name: Werkzeuge installieren
         run: pip install -r requirements-dev.txt
+      - name: Prüfen, ob docs/ zum Quelltext passt
+        run: python tools/gen_docs.py --check
       - name: Website bauen
         run: mkdocs build --strict
       - name: Website als ZIP zum Herunterladen bereitstellen

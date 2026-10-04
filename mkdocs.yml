@@ -1,5 +1,8 @@
 # Konfiguration der Dokumentations-Website (MkDocs mit Material-Theme).
 #
+# Die Seiten in docs/ sind fertiges Markdown (erzeugt mit tools/gen_docs.py),
+# das auch GitHub direkt anzeigt. MkDocs macht daraus zusätzlich eine Website.
+#
 # Lokal ansehen:  mkdocs serve        -> http://127.0.0.1:8000
 # Bauen:          mkdocs build --strict  (Ergebnis im Ordner site/)
 
@@ -60,33 +63,7 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.snippets:
-      # Diagramme und Tabellen nur an einer Stelle pflegen und hier einbinden.
-      base_path: ["."]
-      check_paths: true
 
 plugins:
   - search:
       lang: de
-  - mkdocstrings:
-      locale: de
-      custom_templates: overrides/mkdocstrings
-      handlers:
-        python:
-          paths: ["Quickstart mit Claude"]
-          inventories:
-            - https://docs.python.org/3/objects.inv
-          options:
-            docstring_style: google
-            docstring_section_style: table
-            show_root_heading: true
-            show_root_full_path: false
-            show_symbol_type_heading: true
-            show_symbol_type_toc: true
-            show_signature_annotations: true
-            separate_signature: true
-            signature_crossrefs: true
-            merge_init_into_class: true
-            members_order: source
-            show_source: true
-            filters: ["!^_"]

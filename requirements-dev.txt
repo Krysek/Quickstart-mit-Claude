@@ -4,11 +4,10 @@
 #   .venv\Scripts\activate          (Windows; Linux/macOS: source .venv/bin/activate)
 #   pip install -r requirements-dev.txt
 
-# Dokumentations-Website
-mkdocs>=1.6,<2            # MkDocs 2.0 entfernt das Plugin-System (mkdocstrings)
+# Dokumentation
+griffe>=2.0               # liest Docstrings und Type Hints (tools/gen_docs.py)
+mkdocs>=1.6,<2            # Website; MkDocs 2.0 ist inkompatibel mit Material
 mkdocs-material>=9.7,<10
-mkdocstrings[python]>=1.0
-ruff                      # formatiert die Signaturen in der API-Referenz
 
 # Typprüfung
 mypy

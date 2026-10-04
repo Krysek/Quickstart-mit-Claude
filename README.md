@@ -69,18 +69,51 @@ python -m unittest -v
 
 ## 📚 Dokumentation
 
-Die Dokumentation ist eine Website, die aus den Docstrings, den Type Hints und
-den Mermaid-Diagrammen in `docs/` erzeugt wird. Die Werkzeuge dafür kommen in
-eine eigene virtuelle Umgebung:
+**Direkt auf GitHub lesen:** [`docs/index.md`](docs/index.md) ist die Startseite.
+Von dort führen Links zu den Diagrammen und zur API-Referenz mit allen Klassen
+und Methoden.
+
+Die Dateien in `docs/` sind normales Markdown mit Mermaid-Diagrammen, das
+GitHub direkt darstellt. Sie entstehen so:
+
+| Datei | Herkunft |
+|---|---|
+| [`docs/Diagramme.md`](docs/Diagramme.md) | von Hand gepflegt, einzige Quelle aller Diagramme |
+| `docs/index.md`, `docs/api/*.md` | **erzeugt** mit `tools/gen_docs.py` aus den Vorlagen in `doc_templates/` |
+
+Der Generator liest die Docstrings und Type Hints aus dem Quelltext und fügt die
+Diagramme aus `docs/Diagramme.md` sowie die Tabellen zu Steuerung und Punkten
+aus dieser README ein. Erzeugte Dateien also nie von Hand ändern, sondern
+Quelltext oder Vorlage anpassen und neu erzeugen.
+
+Die Werkzeuge kommen in eine eigene virtuelle Umgebung:
 
 ```bash
 python -m venv .venv
-.venv\Scriptsctivate              # Linux/macOS: source .venv/bin/activate
+.venv\Scripts\activate               # Linux/macOS: source .venv/bin/activate
 pip install -r requirements-dev.txt
+```
 
+Nach Änderungen am Quelltext oder an den Vorlagen:
+
+```bash
+python tools/gen_docs.py             # docs/ neu erzeugen, danach committen
+```
+
+Die CI meldet einen Fehler, wenn das vergessen wurde.
+
+Aus denselben Dateien baut MkDocs zusätzlich eine Website mit Suche und
+Navigation:
+
+```bash
 mkdocs serve                         # Vorschau unter http://127.0.0.1:8000
 mkdocs build --strict                # fertige Website im Ordner site/
 ```
+
+Die Website gibt es auch als Download aus der CI: Im Tab **Actions** den letzten
+Lauf öffnen, unter *Artifacts* `dokumentation` herunterladen, entpacken und
+`index.html` öffnen. Die Suche funktioniert dabei nur über `mkdocs serve` oder
+einen Webserver, nicht beim Öffnen per Doppelklick.
 
 Typprüfung (im Ordner `Quickstart mit Claude`):
 
@@ -88,24 +121,13 @@ Typprüfung (im Ordner `Quickstart mit Claude`):
 mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
 ```
 
-Die Diagramme werden nur in [`docs/Diagramme.md`](docs/Diagramme.md) gepflegt.
-Die Website bindet sie zusätzlich auf den passenden API-Seiten ein.
-
-> **Hinweis:** Die Dateien in `docs/api/` und `docs/index.md` sind Vorlagen für
-> MkDocs. Zeilen wie `--8<-- "docs/Diagramme.md:ablauf"` (Diagramm einfügen)
-> oder `::: model` (API-Doku aus dem Quelltext erzeugen) werden erst beim Bauen
-> ausgeführt. Auf GitHub erscheinen sie daher als roher Text. Die fertige
-> Website gibt es lokal (siehe oben) oder als Download: Im Tab **Actions** den
-> letzten Lauf öffnen, unter *Artifacts* `dokumentation` herunterladen,
-> entpacken und `index.html` öffnen. Die Suche funktioniert nur über
-> `mkdocs serve` oder einen Webserver, nicht beim Öffnen per Doppelklick.
-
 ## ✅ Automatische Prüfungen (GitHub Actions)
 
 Bei jedem Push prüft [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 auf GitHub automatisch:
 
 - die Unit-Tests und `mypy --strict` mit Python 3.11, 3.12 und 3.13
+- ob die erzeugte Dokumentation in `docs/` zum aktuellen Quelltext passt
 - ob sich die Dokumentations-Website fehlerfrei bauen lässt; sie liegt danach
   im Lauf unter *Artifacts* als ZIP `dokumentation` zum Herunterladen bereit
 
@@ -162,14 +184,15 @@ bis zum Minimum von 80 ms.
 │   ├── view.py                     # Zeichnen: Renderer
 │   ├── test_tetris.py              # Unit-Tests
 │   └── Quickstart mit Claude.pyproj
-├── .github/workflows/ci.yml       # automatische Prüfungen auf GitHub
-├── docs/
-│   ├── Diagramme.md                # alle Diagramme (Mermaid), einzige Quelle
-│   ├── index.md                    # Startseite der Dokumentations-Website
-│   └── api/                        # Seiten der API-Referenz
-├── overrides/                      # deutsche Beschriftungen für die API-Referenz
+├── .github/workflows/ci.yml        # automatische Prüfungen auf GitHub
+├── docs/                           # Dokumentation, direkt auf GitHub lesbar
+│   ├── index.md                    # Startseite (erzeugt)
+│   ├── Diagramme.md                # alle Diagramme (Mermaid), von Hand gepflegt
+│   └── api/                        # API-Referenz pro Modul (erzeugt)
+├── doc_templates/                  # Vorlagen für die erzeugten Seiten in docs/
+├── tools/gen_docs.py               # erzeugt docs/ aus Vorlagen und Quelltext
 ├── mkdocs.yml                      # Konfiguration der Dokumentations-Website
-├── requirements-dev.txt            # Werkzeuge: MkDocs, mypy
+├── requirements-dev.txt            # Werkzeuge: griffe, MkDocs, mypy
 └── Quickstart mit Claude.sln       # Visual-Studio-Projektmappe
 ```
 
