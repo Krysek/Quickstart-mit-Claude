@@ -1,0 +1,90 @@
+# Konfiguration der Dokumentations-Website (MkDocs mit Material-Theme).
+#
+# Lokal ansehen:  mkdocs serve        -> http://127.0.0.1:8000
+# Bauen:          mkdocs build --strict  (Ergebnis im Ordner site/)
+
+site_name: Tetris in Schwarz/Weiß
+site_description: Dokumentation zum Tetris-Quickstart-Projekt in Python
+repo_url: https://github.com/Krysek/Quickstart-mit-Claude
+repo_name: Krysek/Quickstart-mit-Claude
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: de
+  icon:
+    logo: material/view-grid
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      toggle:
+        icon: material/weather-night
+        name: Dunkles Design
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/weather-sunny
+        name: Helles Design
+
+nav:
+  - Start: index.md
+  - Architektur und Abläufe: Diagramme.md
+  - API-Referenz:
+      - model – Spielregeln: api/model.md
+      - menu – Pausenmenü: api/menu.md
+      - animation – Lösch-Animation: api/animation.md
+      - view – Zeichnen: api/view.md
+      - TetrisApp – Steuerung: api/app.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        # Mermaid-Diagramme werden im Browser als Grafik dargestellt.
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.snippets:
+      # Diagramme und Tabellen nur an einer Stelle pflegen und hier einbinden.
+      base_path: ["."]
+      check_paths: true
+
+plugins:
+  - search:
+      lang: de
+  - mkdocstrings:
+      locale: de
+      custom_templates: overrides/mkdocstrings
+      handlers:
+        python:
+          paths: ["Quickstart mit Claude"]
+          inventories:
+            - https://docs.python.org/3/objects.inv
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            members_order: source
+            show_source: true
+            filters: ["!^_"]

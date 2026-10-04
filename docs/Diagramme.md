@@ -4,6 +4,37 @@ Dokumentation zu den Modulen in `Quickstart mit Claude/`.
 Die Diagramme sind in [Mermaid](https://mermaid.js.org/) geschrieben und werden
 z. B. auf GitHub und in VS Code direkt als Grafik angezeigt.
 
+## Module und Abhängigkeiten
+
+<!-- --8<-- [start:module] -->
+```mermaid
+flowchart TB
+    app["Quickstart_mit_Claude.py<br/>TetrisApp"]
+    view["view.py<br/>Renderer"]
+    tk[["tkinter"]]
+    test["test_tetris.py<br/>Unit-Tests"]
+
+    subgraph logik ["ohne tkinter"]
+        direction LR
+        model["model.py<br/>Piece · Board · Bag · Game"]
+        menu["menu.py<br/>PauseMenu"]
+        anim["animation.py<br/>ClearAnimation"]
+    end
+
+    app --> view
+    app --> logik
+    view --> logik
+    test --> logik
+    app -.-> tk
+    view -.-> tk
+```
+
+Ein Pfeil bedeutet „importiert“; ein Pfeil auf den Kasten heißt, dass alle
+drei Module darin importiert werden. Nur `view.py` und
+`Quickstart_mit_Claude.py` hängen von tkinter ab (gestrichelt). Alles im Kasten
+„ohne tkinter“ lässt sich ohne Fenster testen.
+<!-- --8<-- [end:module] -->
+
 ## Klassendiagramm
 
 ```mermaid
@@ -168,6 +199,7 @@ Die Klassen verteilen sich auf fünf Module:
 
 ## Spielzustände
 
+<!-- --8<-- [start:zustaende] -->
 ```mermaid
 stateDiagram-v2
     [*] --> PLAYING : Game()
@@ -177,6 +209,7 @@ stateDiagram-v2
     CLEARING --> GAME_OVER : finish_clear() → spawn() ohne Platz
     GAME_OVER --> [*]
 ```
+<!-- --8<-- [end:zustaende] -->
 
 Die Pause ist kein Spielzustand: Sie gehört zur Oberfläche und steckt in
 `PauseMenu.is_open`. Das `Game` merkt davon nichts, die `TetrisApp` ruft
@@ -187,6 +220,7 @@ während der Pause einfach `game.step()` nicht auf.
 Nach dem Start übernimmt die Tk-Ereignisschleife. Sie ruft drei Callbacks der
 `TetrisApp` auf, die sich über Timer (`root.after`) wieder anmelden.
 
+<!-- --8<-- [start:ablauf] -->
 ```mermaid
 flowchart TD
     start(["Programmstart"]) --> main["main()<br/>root = tk.Tk()"]
@@ -208,9 +242,11 @@ flowchart TD
     key --> loop
     key -->|"R / Neustart"| ng
 ```
+<!-- --8<-- [end:ablauf] -->
 
 ### Detail: Spieltakt `tick()`
 
+<!-- --8<-- [start:tick] -->
 ```mermaid
 flowchart TD
     tick["TetrisApp.tick()"] --> paused{"Menü offen?"}
@@ -230,9 +266,11 @@ flowchart TD
     tnext -->|ja| sched["schedule()<br/>nächster tick()"]
     tnext -->|nein| none["kein neuer Takt"]
 ```
+<!-- --8<-- [end:tick] -->
 
 ### Detail: Lösch-Animation `animate_clear()`
 
+<!-- --8<-- [start:animation] -->
 ```mermaid
 flowchart TD
     sca["start_clear_animation()<br/>cancel_tick(),<br/>anim = ClearAnimation(...)"] --> anim
@@ -244,9 +282,11 @@ flowchart TD
     q -->|"None: fertig"| fin["game.finish_clear()<br/>Reihen entfernen, Punkte und Level,<br/>spawn(), draw()"]
     fin -->|"state = PLAYING"| sched["schedule()<br/>Spieltakt läuft wieder"]
 ```
+<!-- --8<-- [end:animation] -->
 
 ### Detail: Tastatur `on_key()`
 
+<!-- --8<-- [start:tastatur] -->
 ```mermaid
 flowchart TD
     key["on_key()"] --> paused{"Pausenmenü<br/>offen?"}
@@ -264,6 +304,7 @@ flowchart TD
     hd -->|nein| kdraw
     act --> kdraw["draw()"]
 ```
+<!-- --8<-- [end:tastatur] -->
 
 ### Erläuterung
 

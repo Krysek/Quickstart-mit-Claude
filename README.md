@@ -36,6 +36,8 @@ Entstanden als Quickstart-Projekt zum Programmieren mit
 - **Pausenmenü** mit *Weiter*, *Neustart* und *Beenden*
 - Komplett auf Deutsch, durchgehend mit Docstrings kommentiert
 - Spiellogik getrennt von der Oberfläche und mit **Unit-Tests** abgesichert
+- Vollständig mit **Type Hints** versehen (geprüft mit `mypy --strict`)
+- **Dokumentations-Website** mit Diagrammen und API-Referenz (MkDocs)
 
 ## 🚀 Starten
 
@@ -63,8 +65,33 @@ cd "Quickstart mit Claude"
 python -m unittest -v
 ```
 
+## 📚 Dokumentation
+
+Die Dokumentation ist eine Website, die aus den Docstrings, den Type Hints und
+den Mermaid-Diagrammen in `docs/` erzeugt wird. Die Werkzeuge dafür kommen in
+eine eigene virtuelle Umgebung:
+
+```bash
+python -m venv .venv
+.venv\Scriptsctivate              # Linux/macOS: source .venv/bin/activate
+pip install -r requirements-dev.txt
+
+mkdocs serve                         # Vorschau unter http://127.0.0.1:8000
+mkdocs build --strict                # fertige Website im Ordner site/
+```
+
+Typprüfung (im Ordner `Quickstart mit Claude`):
+
+```bash
+mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
+```
+
+Die Diagramme werden nur in [`docs/Diagramme.md`](docs/Diagramme.md) gepflegt.
+Die Website bindet sie zusätzlich auf den passenden API-Seiten ein.
+
 ## 🎮 Steuerung
 
+<!-- --8<-- [start:steuerung] -->
 | Taste | Aktion |
 |---|---|
 | <kbd>←</kbd> <kbd>→</kbd> | Stein bewegen |
@@ -77,9 +104,11 @@ python -m unittest -v
 
 **Im Pausenmenü:** <kbd>↑</kbd> <kbd>↓</kbd> wählen einen Eintrag,
 <kbd>Enter</kbd> oder <kbd>Leertaste</kbd> führen ihn aus.
+<!-- --8<-- [end:steuerung] -->
 
 ## 🏆 Punkte
 
+<!-- --8<-- [start:punkte] -->
 | Aktion | Punkte |
 |---|---|
 | 1 Reihe | 100 × Level |
@@ -91,6 +120,7 @@ python -m unittest -v
 
 Das Spiel startet mit 500 ms pro Zeile. Mit jedem Level wird es 45 ms schneller,
 bis zum Minimum von 80 ms.
+<!-- --8<-- [end:punkte] -->
 
 ## 📁 Projektstruktur
 
@@ -105,7 +135,12 @@ bis zum Minimum von 80 ms.
 │   ├── test_tetris.py              # Unit-Tests
 │   └── Quickstart mit Claude.pyproj
 ├── docs/
-│   └── Diagramme.md                # Klassen- und Ablaufdiagramme (Mermaid)
+│   ├── Diagramme.md                # alle Diagramme (Mermaid), einzige Quelle
+│   ├── index.md                    # Startseite der Dokumentations-Website
+│   └── api/                        # Seiten der API-Referenz
+├── overrides/                      # deutsche Beschriftungen für die API-Referenz
+├── mkdocs.yml                      # Konfiguration der Dokumentations-Website
+├── requirements-dev.txt            # Werkzeuge: MkDocs, mypy
 └── Quickstart mit Claude.sln       # Visual-Studio-Projektmappe
 ```
 

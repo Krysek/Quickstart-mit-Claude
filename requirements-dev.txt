@@ -1,0 +1,14 @@
+# Werkzeuge für die Entwicklung (das Spiel selbst braucht nur Python mit tkinter).
+#
+#   python -m venv .venv
+#   .venv\Scripts\activate          (Windows; Linux/macOS: source .venv/bin/activate)
+#   pip install -r requirements-dev.txt
+
+# Dokumentations-Website
+mkdocs>=1.6,<2            # MkDocs 2.0 entfernt das Plugin-System (mkdocstrings)
+mkdocs-material>=9.7,<10
+mkdocstrings[python]>=1.0
+ruff                      # formatiert die Signaturen in der API-Referenz
+
+# Typprüfung
+mypy

@@ -1,12 +1,15 @@
 """Darstellung: Zeichnen auf dem tkinter-Canvas.
 
-Der ``Renderer`` liest nur den Zustand von ``Game``, ``PauseMenu`` und
-``ClearAnimation`` und verändert ihn nie.
+Der [`Renderer`][view.Renderer] liest nur den Zustand von
+[`Game`][model.Game], [`PauseMenu`][menu.PauseMenu] und
+[`ClearAnimation`][animation.ClearAnimation] und verändert ihn nie.
 """
 
 import tkinter as tk
 
-from model import GameState
+from animation import ClearAnimation
+from menu import PauseMenu
+from model import Game, GameState
 
 CELL = 30                    # Kantenlänge einer Zelle in Pixeln
 PANEL = 180                  # Breite der Seitenleiste in Pixeln
@@ -21,23 +24,26 @@ class Renderer:
 
     Attributes:
         canvas: Die tkinter-Zeichenfläche.
-        width, height: Größe des Spielfelds in Pixeln (ohne Seitenleiste).
+        width: Breite des Spielfelds in Pixeln (ohne Seitenleiste).
+        height: Höhe des Spielfelds in Pixeln.
     """
 
-    def __init__(self, root, cols, rows):
+    def __init__(self, root: tk.Misc, cols: int, rows: int) -> None:
         """Legt den Canvas passend zur Spielfeldgröße an.
 
         Args:
             root: Das tkinter-Fenster, in das der Canvas kommt.
-            cols, rows: Größe des Spielfelds in Zellen.
+            cols: Breite des Spielfelds in Zellen.
+            rows: Höhe des Spielfelds in Zellen.
         """
-        self.width = cols * CELL
-        self.height = rows * CELL
-        self.canvas = tk.Canvas(root, width=self.width + PANEL, height=self.height,
+        self.width: int = cols * CELL
+        self.height: int = rows * CELL
+        self.canvas: tk.Canvas = tk.Canvas(root, width=self.width + PANEL, height=self.height,
                                 bg=BG, highlightthickness=0)
         self.canvas.pack()
 
-    def cell(self, c, r, size=CELL, ox=0, oy=0, ghost=False):
+    def cell(self, c: int, r: int, size: int = CELL, ox: int = 0, oy: int = 0,
+             ghost: bool = False) -> None:
         """Zeichnet eine einzelne Zelle.
 
         Args:
@@ -53,13 +59,14 @@ class Renderer:
                                      fill="" if ghost else FG,
                                      outline=FG if ghost else BG)
 
-    def draw(self, game, menu, anim=None):
+    def draw(self, game: Game, menu: PauseMenu,
+             anim: ClearAnimation | None = None) -> None:
         """Zeichnet das komplette Fenster neu.
 
         Args:
-            game: Das ``Game``, dessen Zustand gezeigt wird.
-            menu: Das ``PauseMenu``; ist es offen, wird es darübergelegt.
-            anim: Die laufende ``ClearAnimation`` oder None.
+            game: Das Spiel, dessen Zustand gezeigt wird.
+            menu: Das Pausenmenü; ist es offen, wird es darübergelegt.
+            anim: Die laufende Lösch-Animation oder None.
         """
         self.canvas.delete("all")
         self.draw_board(game, anim)
@@ -69,8 +76,13 @@ class Renderer:
         elif game.state is GameState.GAME_OVER:
             self.draw_game_over()
 
-    def draw_board(self, game, anim):
-        """Zeichnet abgesetzte Blöcke, fallenden Stein und dessen Landeposition."""
+    def draw_board(self, game: Game, anim: ClearAnimation | None) -> None:
+        """Zeichnet abgesetzte Blöcke, fallenden Stein und dessen Landeposition.
+
+        Args:
+            game: Das Spiel, dessen Spielfeld gezeigt wird.
+            anim: Die laufende Lösch-Animation oder None.
+        """
         self.canvas.create_line(self.width + 1, 0, self.width + 1, self.height,
                                 fill=FG, width=2)
         for r, row in enumerate(game.board.grid):
@@ -90,8 +102,12 @@ class Renderer:
             for c, r in game.piece.cells():
                 self.cell(c, r)
 
-    def draw_panel(self, game):
-        """Zeichnet die Seitenleiste: Vorschau, Punkte und Tastenbelegung."""
+    def draw_panel(self, game: Game) -> None:
+        """Zeichnet die Seitenleiste: Vorschau, Punkte und Tastenbelegung.
+
+        Args:
+            game: Das Spiel, dessen Werte gezeigt werden.
+        """
         cv = self.canvas
         tx = self.width + 20
         cv.create_text(tx, 20, anchor="nw", text="NÄCHSTER", fill=FG, font=FONT)
@@ -108,7 +124,7 @@ class Renderer:
         cv.create_text(tx, self.height - 20, anchor="sw", text=help_text,
                        fill=FG, font=SMALL_FONT)
 
-    def draw_game_over(self):
+    def draw_game_over(self) -> None:
         """Zeichnet den Game-Over-Hinweis mittig über das Spielfeld."""
         cv = self.canvas
         cx, cy = self.width // 2, self.height // 2
@@ -117,11 +133,14 @@ class Renderer:
         cv.create_text(cx, cy + 30, text="R = Neustart   Esc = Beenden",
                        fill=FG, font=SMALL_FONT)
 
-    def draw_menu(self, menu):
+    def draw_menu(self, menu: PauseMenu) -> None:
         """Zeichnet das Pausenmenü mittig über das Spielfeld.
 
         Der ausgewählte Eintrag wird invertiert dargestellt (schwarze Schrift
         auf weißem Balken), die übrigen weiß auf schwarz.
+
+        Args:
+            menu: Das Pausenmenü mit dem ausgewählten Eintrag.
         """
         cv = self.canvas
         cx, cy = self.width // 2, self.height // 2

@@ -5,27 +5,27 @@ Das Spiel läuft in einem eigenen Fenster. Links liegt das Spielfeld
 Stein, Punktestand, gelöschten Reihen, Level und Tastenbelegung.
 
 Aufbau:
-    model.py                  Spielregeln (Piece, Board, Bag, Game), ohne tkinter
-    menu.py                   Zustand des Pausenmenüs (PauseMenu), ohne tkinter
-    animation.py              Lösch-Animation (ClearAnimation), ohne tkinter
-    view.py                   Zeichnen auf dem Canvas (Renderer)
-    Quickstart_mit_Claude.py  verbindet alles: Tastatur und Timer (TetrisApp)
+    - `model.py`: Spielregeln (`Piece`, `Board`, `Bag`, `Game`), ohne tkinter
+    - `menu.py`: Zustand des Pausenmenüs (`PauseMenu`), ohne tkinter
+    - `animation.py`: Lösch-Animation (`ClearAnimation`), ohne tkinter
+    - `view.py`: Zeichnen auf dem Canvas (`Renderer`)
+    - `Quickstart_mit_Claude.py`: verbindet alles, Tastatur und Timer (`TetrisApp`)
 
 Steuerung:
-    Pfeil links/rechts  Stein bewegen
-    Pfeil hoch          Stein drehen
-    Pfeil runter        Stein schneller fallen lassen (+1 Punkt pro Zeile)
-    Leertaste           Stein sofort fallen lassen (+2 Punkte pro Zeile)
-    Esc oder P          Pausenmenü öffnen/schließen
-    Esc bei Game Over   Beenden
-    R                   Neues Spiel
+    - Pfeil links/rechts: Stein bewegen
+    - Pfeil hoch: Stein drehen
+    - Pfeil runter: Stein schneller fallen lassen (+1 Punkt pro Zeile)
+    - Leertaste: Stein sofort fallen lassen (+2 Punkte pro Zeile)
+    - Esc oder P: Pausenmenü öffnen/schließen
+    - Esc bei Game Over: Beenden
+    - R: Neues Spiel
 
 Im Pausenmenü:
-    Pfeil hoch/runter   Eintrag wählen (Weiter, Neustart, Beenden)
-    Enter oder Leertaste  Eintrag ausführen
+    - Pfeil hoch/runter: Eintrag wählen (Weiter, Neustart, Beenden)
+    - Enter oder Leertaste: Eintrag ausführen
 
 Start:
-    python Quickstart_mit_Claude.py
+    `python Quickstart_mit_Claude.py`
 """
 
 import tkinter as tk
@@ -39,42 +39,46 @@ from view import Renderer
 class TetrisApp:
     """Verbindet Spiel, Menü und Darstellung mit tkinter.
 
-    Es gibt keine eigene Spielschleife: ``root.mainloop()`` ruft
-    :meth:`on_key` bei Tastendrücken auf, und über ``root.after`` laufen
-    zwei Timer, :meth:`tick` für den Spieltakt und :meth:`animate_clear` für
-    die Lösch-Animation. Während der Animation ist der Spieltakt angehalten.
+    Es gibt keine eigene Spielschleife: `root.mainloop()` ruft `on_key()`
+    bei Tastendrücken auf, und über `root.after` laufen zwei Timer: `tick()`
+    für den Spieltakt und `animate_clear()` für die Lösch-Animation.
+    Während der Animation ist der Spieltakt angehalten.
 
     Attributes:
         root: Das tkinter-Hauptfenster.
-        cols, rows: Größe des Spielfelds in Zellen, für Spiel und Darstellung.
+        cols: Breite des Spielfelds in Zellen, für Spiel und Darstellung.
+        rows: Höhe des Spielfelds in Zellen, für Spiel und Darstellung.
         renderer: Zeichnet den Zustand auf den Canvas.
         menu: Das Pausenmenü.
         game: Das laufende Spiel.
         anim: Die laufende Lösch-Animation oder None.
-        job: ID des geplanten nächsten :meth:`tick` (oder None).
+        job: ID des geplanten nächsten Spieltakts (oder None).
         anim_job: ID des geplanten nächsten Animationsschritts (oder None).
     """
 
-    def __init__(self, root, cols=COLS, rows=ROWS):
+    def __init__(self, root: tk.Tk, cols: int = COLS, rows: int = ROWS) -> None:
         """Baut das Fenster auf und startet das erste Spiel.
 
         Args:
             root: Das tkinter-Hauptfenster, in dem das Spiel läuft.
-            cols, rows: Größe des Spielfelds in Zellen.
+            cols: Breite des Spielfelds in Zellen.
+            rows: Höhe des Spielfelds in Zellen.
         """
-        self.root = root
-        self.cols = cols
-        self.rows = rows
+        self.root: tk.Tk = root
+        self.cols: int = cols
+        self.rows: int = rows
         root.title("Tetris")
         root.resizable(False, False)
-        self.renderer = Renderer(root, cols, rows)
-        self.menu = PauseMenu()
+        self.renderer: Renderer = Renderer(root, cols, rows)
+        self.menu: PauseMenu = PauseMenu()
         root.bind("<Key>", self.on_key)
-        self.job = None
-        self.anim_job = None
+        self.job: str | None = None
+        self.anim_job: str | None = None
+        self.anim: ClearAnimation | None = None
+        self.game: Game
         self.new_game()
 
-    def new_game(self):
+    def new_game(self) -> None:
         """Startet ein neues Spiel.
 
         Bricht dabei einen laufenden Spieltakt und eine laufende
@@ -88,30 +92,30 @@ class TetrisApp:
         self.draw()
         self.schedule()
 
-    def cancel_tick(self):
+    def cancel_tick(self) -> None:
         """Bricht den geplanten Spieltakt ab, falls es einen gibt."""
         if self.job:
             self.root.after_cancel(self.job)
             self.job = None
 
-    def cancel_timers(self):
+    def cancel_timers(self) -> None:
         """Bricht Spieltakt und Animationsschritt ab, falls geplant."""
         self.cancel_tick()
         if self.anim_job:
             self.root.after_cancel(self.anim_job)
             self.anim_job = None
 
-    def draw(self):
+    def draw(self) -> None:
         """Zeichnet den aktuellen Zustand neu."""
         self.renderer.draw(self.game, self.menu, self.anim)
 
     # --- Spieltakt ---------------------------------------------------------
 
-    def schedule(self):
+    def schedule(self) -> None:
         """Plant den nächsten Spieltakt ein (Wartezeit je nach Level)."""
         self.job = self.root.after(self.game.tick_delay, self.tick)
 
-    def tick(self):
+    def tick(self) -> None:
         """Ein Spieltakt: Der Stein fällt eine Zeile oder wird abgesetzt.
 
         Während einer Pause passiert nichts, der Takt läuft aber weiter.
@@ -129,22 +133,23 @@ class TetrisApp:
 
     # --- Lösch-Animation ---------------------------------------------------
 
-    def start_clear_animation(self):
+    def start_clear_animation(self) -> None:
         """Hält den Spieltakt an und startet die Animation für volle Reihen.
 
-        Wird aufgerufen, wenn ``game.step()`` oder ``game.hard_drop()`` meldet,
-        dass Reihen voll sind.
+        Wird aufgerufen, wenn [`Game.step`][model.Game.step] oder
+        [`Game.hard_drop`][model.Game.hard_drop] meldet, dass Reihen voll sind.
         """
         self.cancel_tick()
         self.anim = ClearAnimation(self.game.clearing, self.game.board.cols)
         self.animate_clear()
 
-    def animate_clear(self):
+    def animate_clear(self) -> None:
         """Zeigt einen Schritt der Lösch-Animation und plant den nächsten.
 
         Ist die Animation vorbei, werden die Reihen entfernt und der
         Spieltakt läuft wieder an.
         """
+        assert self.anim is not None
         delay = self.anim.step()
         if delay is None:
             self.anim = None
@@ -159,10 +164,10 @@ class TetrisApp:
 
     # --- Eingabe -----------------------------------------------------------
 
-    def on_key(self, event):
+    def on_key(self, event: tk.Event) -> None:
         """Reagiert auf Tastendrücke (Belegung siehe Modul-Docstring).
 
-        Ist das Pausenmenü offen, gehen alle Tasten an :meth:`on_menu_key`.
+        Ist das Pausenmenü offen, gehen alle Tasten an `on_menu_key()`.
         R funktioniert immer. Esc und P öffnen im laufenden Spiel das
         Pausenmenü, bei Game Over beendet Esc das Programm. Während der
         Lösch-Animation sind alle Tasten außer R gesperrt.
@@ -199,7 +204,7 @@ class TetrisApp:
             return
         self.draw()
 
-    def on_menu_key(self, key):
+    def on_menu_key(self, key: str) -> None:
         """Verarbeitet Tastendrücke, solange das Pausenmenü offen ist.
 
         Pfeil hoch/runter wechseln den Eintrag (am Ende geht es oben weiter),
@@ -225,7 +230,7 @@ class TetrisApp:
             return
         self.draw()
 
-    def select_menu_item(self):
+    def select_menu_item(self) -> None:
         """Führt den ausgewählten Menüeintrag aus: Weiter, Neustart oder Beenden."""
         item = self.menu.selected
         if item == "Weiter":
@@ -237,7 +242,7 @@ class TetrisApp:
             self.root.destroy()
 
 
-def main():
+def main() -> None:
     """Öffnet das Spielfenster und startet die tkinter-Ereignisschleife."""
     root = tk.Tk()
     TetrisApp(root)
