@@ -1,5 +1,7 @@
 # 🧱 Tetris in Schwarz/Weiß
 
+[![CI](https://github.com/Krysek/Quickstart-mit-Claude/actions/workflows/ci.yml/badge.svg)](https://github.com/Krysek/Quickstart-mit-Claude/actions/workflows/ci.yml)
+
 Ein schlichtes, vollständig spielbares **Tetris** in Python – ohne externe
 Abhängigkeiten. Gezeichnet wird mit `tkinter`, das bei
 Python schon dabei ist.
@@ -89,6 +91,22 @@ mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
 Die Diagramme werden nur in [`docs/Diagramme.md`](docs/Diagramme.md) gepflegt.
 Die Website bindet sie zusätzlich auf den passenden API-Seiten ein.
 
+## ✅ Automatische Prüfungen (GitHub Actions)
+
+Bei jedem Push prüft [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+auf GitHub automatisch:
+
+- die Unit-Tests und `mypy --strict` mit Python 3.11, 3.12 und 3.13
+- ob sich die Dokumentations-Website fehlerfrei bauen lässt
+
+Das Ergebnis steht im Tab **Actions** und als Abzeichen oben in dieser Datei.
+
+Die Website kann zusätzlich auf **GitHub Pages** veröffentlicht werden. Dieser
+Schritt ist ausgeschaltet, denn Pages-Seiten sind öffentlich, auch bei einem
+privaten Repository. Zum Einschalten unter *Settings → Pages* die Quelle
+„GitHub Actions“ wählen und unter *Settings → Secrets and variables → Actions →
+Variables* die Variable `PAGES_ENABLED` mit dem Wert `true` anlegen.
+
 ## 🎮 Steuerung
 
 <!-- --8<-- [start:steuerung] -->
@@ -134,6 +152,7 @@ bis zum Minimum von 80 ms.
 │   ├── view.py                     # Zeichnen: Renderer
 │   ├── test_tetris.py              # Unit-Tests
 │   └── Quickstart mit Claude.pyproj
+├── .github/workflows/ci.yml       # automatische Prüfungen auf GitHub
 ├── docs/
 │   ├── Diagramme.md                # alle Diagramme (Mermaid), einzige Quelle
 │   ├── index.md                    # Startseite der Dokumentations-Website
