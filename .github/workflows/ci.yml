@@ -29,8 +29,8 @@ jobs:
       run:
         working-directory: Quickstart mit Claude
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: mypy installieren
@@ -44,8 +44,8 @@ jobs:
     name: Dokumentation bauen
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -56,7 +56,7 @@ jobs:
         run: mkdocs build --strict
       - name: Website für GitHub Pages bereitstellen
         if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -66,6 +66,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       pages: write
       id-token: write
     environment:
@@ -76,4 +77,4 @@ jobs:
       cancel-in-progress: false
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
