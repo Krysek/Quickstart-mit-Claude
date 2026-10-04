@@ -77,6 +77,11 @@ class Board:
     """
 
     def __init__(self, cols=COLS, rows=ROWS):
+        """Erzeugt ein leeres Spielfeld.
+
+        Args:
+            cols, rows: Breite und Höhe in Zellen.
+        """
         self.cols = cols
         self.rows = rows
         self.grid = [[0] * cols for _ in range(rows)]
@@ -171,6 +176,12 @@ class Game:
     """
 
     def __init__(self, cols=COLS, rows=ROWS, rng=None):
+        """Startet ein neues Spiel mit leerem Spielfeld und erstem Stein.
+
+        Args:
+            cols, rows: Größe des Spielfelds in Zellen.
+            rng: Zufallsgenerator für den 7er-Beutel (z. B. für Tests).
+        """
         self.board = Board(cols, rows)
         self.bag = Bag(rng=rng)
         self.score = 0

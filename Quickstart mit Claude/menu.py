@@ -17,6 +17,7 @@ class PauseMenu:
     ITEMS = ("Weiter", "Neustart", "Beenden")
 
     def __init__(self):
+        """Erzeugt ein geschlossenes Menü mit "Weiter" ausgewählt."""
         self.is_open = False
         self.index = 0
 

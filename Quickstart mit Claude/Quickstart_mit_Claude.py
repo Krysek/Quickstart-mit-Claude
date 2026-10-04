@@ -5,10 +5,10 @@ Das Spiel läuft in einem eigenen Fenster. Links liegt das Spielfeld
 Stein, Punktestand, gelöschten Reihen, Level und Tastenbelegung.
 
 Aufbau:
-    model.py                Spielregeln (Piece, Board, Bag, Game), ohne tkinter
-    menu.py                 Zustand des Pausenmenüs (PauseMenu), ohne tkinter
-    animation.py            Fortschritt der Lösch-Animation (ClearAnimation), ohne tkinter
-    view.py                 Zeichnen auf dem Canvas (Renderer)
+    model.py                  Spielregeln (Piece, Board, Bag, Game), ohne tkinter
+    menu.py                   Zustand des Pausenmenüs (PauseMenu), ohne tkinter
+    animation.py              Lösch-Animation (ClearAnimation), ohne tkinter
+    view.py                   Zeichnen auf dem Canvas (Renderer)
     Quickstart_mit_Claude.py  verbindet alles: Tastatur und Timer (TetrisApp)
 
 Steuerung:

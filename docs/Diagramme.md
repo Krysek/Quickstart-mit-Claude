@@ -279,7 +279,8 @@ flowchart TD
   `Renderer` blendet die Zellen nur aus.
 - **Leertaste:** `game.hard_drop()` setzt den Stein direkt an die Position
   von `ghost()` und ruft dann `lock()` auf, mit denselben Folgen wie im
-  Spieltakt. Einen neuen
-  Takt plant es nicht ein, der bestehende Timer läuft einfach weiter.
+  Spieltakt. Ohne volle Reihen läuft der bestehende Takt-Timer einfach weiter.
+  Mit vollen Reihen bricht `start_clear_animation()` ihn ab, bis die
+  Animation fertig ist.
 - **Programmende:** `root.destroy()` (Menüpunkt „Beenden“ oder Esc bei Game
   Over) schließt das Fenster, dadurch kehrt `mainloop()` zurück.

@@ -29,6 +29,12 @@ class ClearAnimation:
     WIPE_DELAY = 40
 
     def __init__(self, rows, cols):
+        """Bereitet die Animation vor; der erste Schritt folgt mit :meth:`step`.
+
+        Args:
+            rows: Zeilennummern der vollen Reihen.
+            cols: Breite des Spielfelds in Zellen.
+        """
         self.rows = rows
         self.cols = cols
         self.frame = 0
