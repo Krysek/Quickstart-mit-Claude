@@ -1,5 +1,7 @@
 # TetrisApp – Steuerung
 
+[← Startseite der Dokumentation](../index.md)
+
 Die `TetrisApp` hat keine eigene Spielschleife. Die Ereignisschleife von
 tkinter ruft ihre Callbacks auf:
 

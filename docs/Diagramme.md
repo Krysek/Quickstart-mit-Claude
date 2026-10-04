@@ -1,5 +1,7 @@
 # Tetris – Diagramme
 
+[← Startseite der Dokumentation](index.md)
+
 Dokumentation zu den Modulen in `Quickstart mit Claude/`.
 Die Diagramme sind in [Mermaid](https://mermaid.js.org/) geschrieben und werden
 z. B. auf GitHub und in VS Code direkt als Grafik angezeigt.
@@ -111,6 +113,8 @@ classDiagram
     namespace animation {
         class ClearAnimation {
             +int BLINK_FRAMES = 6$
+            +int BLINK_DELAY = 70$
+            +int WIPE_DELAY = 40$
             +list rows
             +int cols
             +int frame

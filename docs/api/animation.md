@@ -2,6 +2,8 @@
 
 # animation – Lösch-Animation
 
+[← Startseite der Dokumentation](../index.md)
+
 So spielt die [`TetrisApp`](app.md#quickstart_mit_claude-tetrisapp) die Animation
 mit Hilfe von [`ClearAnimation`](#animation-clearanimation) ab:
 

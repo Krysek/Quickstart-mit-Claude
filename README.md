@@ -39,7 +39,8 @@ Entstanden als Quickstart-Projekt zum Programmieren mit
 - Komplett auf Deutsch, durchgehend mit Docstrings kommentiert
 - Spiellogik getrennt von der Oberfläche und mit **Unit-Tests** abgesichert
 - Vollständig mit **Type Hints** versehen (geprüft mit `mypy --strict`)
-- **Dokumentations-Website** mit Diagrammen und API-Referenz (MkDocs)
+- **Dokumentation** mit Diagrammen und API-Referenz, direkt auf GitHub lesbar
+  und zusätzlich als Website (MkDocs)
 
 ## 🚀 Starten
 
@@ -222,7 +223,8 @@ Ereignisse und ruft in der `TetrisApp` drei Callbacks auf:
 - `animate_clear()` – spielt die Animation beim Löschen von Reihen ab
 
 Ausführliche Klassen- und Ablaufdiagramme gibt es in
-[`docs/Diagramme.md`](docs/Diagramme.md).
+[`docs/Diagramme.md`](docs/Diagramme.md), alle Klassen und Methoden in der
+API-Referenz, die über [`docs/index.md`](docs/index.md) erreichbar ist.
 
 ## ⚙️ Anpassen
 

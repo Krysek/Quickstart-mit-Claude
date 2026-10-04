@@ -2,6 +2,8 @@
 
 # menu – Pausenmenü
 
+[← Startseite der Dokumentation](../index.md)
+
 <a id="menu"></a>
 
 ## Modul `menu`
