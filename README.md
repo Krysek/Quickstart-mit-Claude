@@ -100,7 +100,8 @@ bis zum Minimum von 80 ms.
 │   ├── Quickstart_mit_Claude.py    # Startpunkt: TetrisApp (Tastatur, Timer)
 │   ├── model.py                    # Spielregeln: Piece, Board, Bag, Game
 │   ├── menu.py                     # Pausenmenü: PauseMenu
-│   ├── view.py                     # Zeichnen: Renderer, ClearAnimation
+│   ├── animation.py                # Lösch-Animation: ClearAnimation
+│   ├── view.py                     # Zeichnen: Renderer
 │   ├── test_tetris.py              # Unit-Tests
 │   └── Quickstart mit Claude.pyproj
 ├── docs/
@@ -119,12 +120,12 @@ Das Spiel ist in Logik und Oberfläche aufgeteilt:
 | `Bag` | `model.py` | Der 7er-Beutel für die nächsten Steine |
 | `Game` | `model.py` | Die Regeln: Punkte, Level, Zustand (`GameState`) |
 | `PauseMenu` | `menu.py` | Einträge und Auswahl des Pausenmenüs |
-| `ClearAnimation` | `view.py` | Fortschritt der Lösch-Animation |
+| `ClearAnimation` | `animation.py` | Fortschritt der Lösch-Animation |
 | `Renderer` | `view.py` | Zeichnet alles auf den tkinter-Canvas |
 | `TetrisApp` | `Quickstart_mit_Claude.py` | Verbindet alles: Tastatur und Timer |
 
-`model.py` und `menu.py` kennen kein tkinter. Deshalb lassen sie sich ohne
-Fenster testen.
+Nur `view.py` und `Quickstart_mit_Claude.py` nutzen tkinter. Alles andere
+lässt sich ohne Fenster testen, sogar auf einem Rechner ganz ohne tkinter.
 
 Es gibt keine eigene Spielschleife: `root.mainloop()` von tkinter wartet auf
 Ereignisse und ruft in der `TetrisApp` drei Callbacks auf:

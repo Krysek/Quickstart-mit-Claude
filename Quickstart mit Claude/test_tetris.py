@@ -7,9 +7,9 @@ Start (im Ordner dieser Datei):
 import random
 import unittest
 
+from animation import ClearAnimation
 from menu import PauseMenu
 from model import COLS, ROWS, SHAPES, Bag, Board, Game, GameState, Piece
-from view import ClearAnimation
 
 I_SHAPE, O_SHAPE, T_SHAPE = SHAPES[0], SHAPES[1], SHAPES[2]
 
@@ -110,7 +110,7 @@ class GameTest(unittest.TestCase):
         game.board.grid[ROWS - 1] = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1]
         game.piece = Piece(I_SHAPE, 3, 0)          # Blöcke in Zeile 1 der Matrix
 
-        game.hard_drop()
+        self.assertTrue(game.hard_drop())
         self.assertIs(game.state, GameState.CLEARING)
         self.assertEqual(game.clearing, [ROWS - 1])
         self.assertEqual(game.score, (ROWS - 2) * 2)
@@ -121,14 +121,31 @@ class GameTest(unittest.TestCase):
         self.assertEqual(game.score, (ROWS - 2) * 2 + 100)
         self.assertTrue(all(cell == 0 for row in game.board.grid for cell in row))
 
+    def test_hard_drop_without_full_row(self):
+        game = new_game()
+        landing = game.ghost()
+        self.assertFalse(game.hard_drop())
+        self.assertIs(game.state, GameState.PLAYING)
+        self.assertEqual(game.score, 2 * landing.y)
+        for c, r in landing.cells():
+            self.assertEqual(game.board.grid[r][c], 1)
+
+    def test_step_reports_full_rows(self):
+        game = new_game()
+        self.assertFalse(game.step())               # Stein fällt nur eine Zeile
+        game.board.grid[ROWS - 1] = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1]
+        game.piece = Piece(I_SHAPE, 3, ROWS - 2)   # liegt schon in der Lücke
+        self.assertTrue(game.step())
+        self.assertIs(game.state, GameState.CLEARING)
+
     def test_actions_ignored_while_clearing(self):
         game = new_game()
         game.state = GameState.CLEARING
         piece = game.piece
         self.assertFalse(game.move(1, 0))
         self.assertFalse(game.rotate())
-        game.hard_drop()
-        game.step()
+        self.assertFalse(game.hard_drop())
+        self.assertFalse(game.step())
         self.assertEqual(game.piece, piece)
 
     def test_level_and_speed(self):

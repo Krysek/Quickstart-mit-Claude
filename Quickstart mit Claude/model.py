@@ -226,7 +226,10 @@ class Game:
             True, wenn der Stein gedreht wurde, sonst False.
         """
         rotated = self.piece.rotated()
-        return any(self._try(rotated.moved(dx, 0)) for dx in KICKS)
+        for dx in KICKS:
+            if self._try(rotated.moved(dx, 0)):
+                return True
+        return False
 
     def soft_drop(self):
         """Lässt den Stein eine Zeile fallen und gibt dafür 1 Punkt.
@@ -243,31 +246,45 @@ class Game:
         """Lässt den Stein sofort ganz nach unten fallen und setzt ihn ab.
 
         Gibt 2 Punkte pro übersprungener Zeile.
+
+        Returns:
+            True, wenn dadurch Reihen voll sind (siehe :meth:`lock`).
         """
         if self.state is not GameState.PLAYING:
-            return
-        while self.move(0, 1):
-            self.score += 2
-        self.lock()
+            return False
+        target = self.ghost()
+        self.score += 2 * (target.y - self.piece.y)
+        self.piece = target
+        return self.lock()
 
     def step(self):
-        """Ein Spieltakt: Der Stein fällt eine Zeile oder wird abgesetzt."""
+        """Ein Spieltakt: Der Stein fällt eine Zeile oder wird abgesetzt.
+
+        Returns:
+            True, wenn der Stein abgesetzt wurde und dadurch Reihen voll sind
+            (siehe :meth:`lock`).
+        """
         if self.state is GameState.PLAYING and not self.move(0, 1):
-            self.lock()
+            return self.lock()
+        return False
 
     def lock(self):
         """Setzt den fallenden Stein fest ins Spielfeld.
 
         Sind dadurch Reihen voll, wechselt das Spiel zu ``CLEARING``.
         Andernfalls erscheint direkt der nächste Stein.
+
+        Returns:
+            True, wenn Reihen voll sind und auf :meth:`finish_clear` warten.
         """
         self.board.place(self.piece)
         full = self.board.full_rows()
         if full:
             self.clearing = full
             self.state = GameState.CLEARING
-        else:
-            self.spawn()
+            return True
+        self.spawn()
+        return False
 
     def finish_clear(self):
         """Entfernt die vollen Reihen und setzt das Spiel fort.

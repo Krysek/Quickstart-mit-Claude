@@ -56,9 +56,9 @@ classDiagram
             +move(dx, dy) bool
             +rotate() bool
             +soft_drop() bool
-            +hard_drop()
-            +step()
-            +lock()
+            +hard_drop() bool
+            +step() bool
+            +lock() bool
             +finish_clear()
             +ghost() Piece
         }
@@ -77,7 +77,7 @@ classDiagram
         }
     }
 
-    namespace view {
+    namespace animation {
         class ClearAnimation {
             +int BLINK_FRAMES = 6$
             +list rows
@@ -85,9 +85,12 @@ classDiagram
             +int frame
             +bool flash
             +int wiped
-            +step() int
+            +step() Optional~int~
             +hides(col) bool
         }
+    }
+
+    namespace view {
         class Renderer {
             +Canvas canvas
             +int width
@@ -103,6 +106,8 @@ classDiagram
 
     class TetrisApp {
         +Tk root
+        +int cols
+        +int rows
         +Renderer renderer
         +PauseMenu menu
         +Game game
@@ -110,7 +115,9 @@ classDiagram
         +str job
         +str anim_job
         +new_game()
-        +update()
+        +cancel_tick()
+        +cancel_timers()
+        +draw()
         +schedule()
         +tick()
         +start_clear_animation()
@@ -134,13 +141,14 @@ classDiagram
     Renderer ..> ClearAnimation : liest
 ```
 
-Die Klassen verteilen sich auf vier Module:
+Die Klassen verteilen sich auf fünf Module:
 
 | Modul | Klassen | Kennt tkinter? |
 |---|---|---|
 | `model.py` | `Piece`, `Board`, `Bag`, `GameState`, `Game` | nein |
 | `menu.py` | `PauseMenu` | nein |
-| `view.py` | `ClearAnimation`, `Renderer` | ja (nur `Renderer`) |
+| `animation.py` | `ClearAnimation` | nein |
+| `view.py` | `Renderer` | ja |
 | `Quickstart_mit_Claude.py` | `TetrisApp`, `main()` | ja |
 
 - **`Piece` ist unveränderlich.** `moved()` und `rotated()` liefern neue Steine.
@@ -148,6 +156,11 @@ Die Klassen verteilen sich auf vier Module:
   `Board.collides()` nichts dagegen hat.
 - **`Game` prüft seinen Zustand selbst.** Bewegungen wirken nur in `PLAYING`.
   Deshalb muss die `TetrisApp` nicht überall Flags abfragen.
+- **`Game` meldet volle Reihen.** `step()` und `hard_drop()` geben True
+  zurück, wenn der Stein abgesetzt wurde und Reihen voll sind. Die
+  `TetrisApp` startet dann die Animation.
+- **`ClearAnimation.step()`** liefert die Wartezeit bis zum nächsten Schritt
+  in ms, am Ende der Animation `None`.
 - **Der `Renderer` liest nur.** Er bekommt `Game`, `PauseMenu` und
   `ClearAnimation` übergeben und verändert nichts daran.
 - `job` und `anim_job` in der `TetrisApp` enthalten die IDs der mit
@@ -188,8 +201,8 @@ flowchart TD
     loop -->|"root.destroy()"| stop(["Programmende"])
 
     tick -->|"nächster Takt"| sched
-    tick -->|"state = CLEARING"| anim
-    key -->|"state = CLEARING"| anim
+    tick -->|"step() = True"| anim
+    key -->|"hard_drop() = True"| anim
     anim -->|"nächster Schritt"| loop
     anim -->|"fertig: game.finish_clear()"| sched
     key --> loop
@@ -207,12 +220,13 @@ flowchart TD
     down -->|ja| moved["Stein eine Zeile tiefer"]
     down -->|nein| lock["game.lock()<br/>board.place(piece)"]
     lock --> full{"board.full_rows()?"}
-    full -->|nein| spawn["game.spawn()<br/>(kein Platz: GAME_OVER)"]
-    full -->|ja| clearing["state = CLEARING"]
-    moved --> upd
-    spawn --> upd
-    clearing --> upd["update()<br/>CLEARING: start_clear_animation()<br/>sonst: draw()"]
-    upd --> tnext{"state = PLAYING?"}
+    full -->|nein| spawn["game.spawn()<br/>(kein Platz: GAME_OVER)<br/>step() gibt False zurück"]
+    full -->|ja| clearing["state = CLEARING<br/>step() gibt True zurück"]
+    moved --> draw["draw()"]
+    spawn --> draw
+    clearing --> sca["start_clear_animation()"]
+    draw --> tnext{"state = PLAYING?"}
+    sca --> tnext
     tnext -->|ja| sched["schedule()<br/>nächster tick()"]
     tnext -->|nein| none["kein neuer Takt"]
 ```
@@ -221,7 +235,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    sca["start_clear_animation()<br/>Takt-Timer abbrechen,<br/>anim = ClearAnimation(...)"] --> anim
+    sca["start_clear_animation()<br/>cancel_tick(),<br/>anim = ClearAnimation(...)"] --> anim
     anim["animate_clear()<br/>delay = anim.step()"] --> q{"delay?"}
     q -->|"70 ms: Blinkphase"| blink["anim.flash wechselt<br/>Reihen gefüllt / als Umriss"]
     q -->|"40 ms: Auflösephase"| wipe["anim.wiped += 1<br/>Renderer blendet Spalten<br/>von der Mitte aus aus"]
@@ -244,8 +258,11 @@ flowchart TD
     r -->|ja| ng["new_game()"]
     r -->|nein| blocked{"state ≠ PLAYING?"}
     blocked -->|"ja (Esc bei GAME_OVER: destroy())"| ignore["Taste ignorieren"]
-    blocked -->|nein| act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Leer game.hard_drop()<br/>Esc / P menu.open()"]
-    act --> kupd["update()"]
+    blocked -->|nein| act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Esc / P menu.open()"]
+    blocked -->|"nein, Leertaste"| hd{"game.hard_drop()<br/>volle Reihen?"}
+    hd -->|ja| ksca["start_clear_animation()"]
+    hd -->|nein| kdraw
+    act --> kdraw["draw()"]
 ```
 
 ### Erläuterung
@@ -260,8 +277,9 @@ flowchart TD
   `TetrisApp` nach der Animation `finish_clear()` aufruft. Bis dahin ist der
   Spieltakt angehalten. Die Animation verändert das Spielfeld nicht, der
   `Renderer` blendet die Zellen nur aus.
-- **Leertaste:** `game.hard_drop()` lässt den Stein ganz nach unten fallen und
-  ruft dann `lock()` auf, mit denselben Folgen wie im Spieltakt. Einen neuen
+- **Leertaste:** `game.hard_drop()` setzt den Stein direkt an die Position
+  von `ghost()` und ruft dann `lock()` auf, mit denselben Folgen wie im
+  Spieltakt. Einen neuen
   Takt plant es nicht ein, der bestehende Timer läuft einfach weiter.
 - **Programmende:** `root.destroy()` (Menüpunkt „Beenden“ oder Esc bei Game
   Over) schließt das Fenster, dadurch kehrt `mainloop()` zurück.

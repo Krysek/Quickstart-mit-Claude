@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Quickstart_mit_Claude.py" />
+    <Compile Include="animation.py" />
     <Compile Include="menu.py" />
     <Compile Include="model.py" />
     <Compile Include="test_tetris.py" />
