@@ -91,13 +91,23 @@ mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
 Die Diagramme werden nur in [`docs/Diagramme.md`](docs/Diagramme.md) gepflegt.
 Die Website bindet sie zusätzlich auf den passenden API-Seiten ein.
 
+> **Hinweis:** Die Dateien in `docs/api/` und `docs/index.md` sind Vorlagen für
+> MkDocs. Zeilen wie `--8<-- "docs/Diagramme.md:ablauf"` (Diagramm einfügen)
+> oder `::: model` (API-Doku aus dem Quelltext erzeugen) werden erst beim Bauen
+> ausgeführt. Auf GitHub erscheinen sie daher als roher Text. Die fertige
+> Website gibt es lokal (siehe oben) oder als Download: Im Tab **Actions** den
+> letzten Lauf öffnen, unter *Artifacts* `dokumentation` herunterladen,
+> entpacken und `index.html` öffnen. Die Suche funktioniert nur über
+> `mkdocs serve` oder einen Webserver, nicht beim Öffnen per Doppelklick.
+
 ## ✅ Automatische Prüfungen (GitHub Actions)
 
 Bei jedem Push prüft [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 auf GitHub automatisch:
 
 - die Unit-Tests und `mypy --strict` mit Python 3.11, 3.12 und 3.13
-- ob sich die Dokumentations-Website fehlerfrei bauen lässt
+- ob sich die Dokumentations-Website fehlerfrei bauen lässt; sie liegt danach
+  im Lauf unter *Artifacts* als ZIP `dokumentation` zum Herunterladen bereit
 
 Das Ergebnis steht im Tab **Actions** und als Abzeichen oben in dieser Datei.
 

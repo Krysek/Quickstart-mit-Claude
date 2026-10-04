@@ -1,7 +1,8 @@
 # Automatische Prüfungen bei jedem Push und Pull Request.
 #
 #   test    Unit-Tests und Typprüfung (mypy --strict) mit mehreren Python-Versionen
-#   docs    baut die Dokumentations-Website (mkdocs build --strict)
+#   docs    baut die Dokumentations-Website (mkdocs build --strict) und stellt
+#           sie im Lauf unter "Artifacts" als ZIP "dokumentation" bereit
 #   deploy  veröffentlicht die Website auf GitHub Pages; ist ausgeschaltet, bis
 #           in den Repository-Einstellungen die Variable PAGES_ENABLED = true
 #           gesetzt ist (Settings → Secrets and variables → Actions → Variables).
@@ -54,6 +55,12 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Website bauen
         run: mkdocs build --strict
+      - name: Website als ZIP zum Herunterladen bereitstellen
+        uses: actions/upload-artifact@v7
+        with:
+          name: dokumentation
+          path: site
+          retention-days: 30
       - name: Website für GitHub Pages bereitstellen
         if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v5

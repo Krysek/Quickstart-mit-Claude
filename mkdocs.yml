@@ -8,6 +8,8 @@ site_description: Dokumentation zum Tetris-Quickstart-Projekt in Python
 repo_url: https://github.com/Krysek/Quickstart-mit-Claude
 repo_name: Krysek/Quickstart-mit-Claude
 edit_uri: edit/main/docs/
+# Links auf .html-Dateien, damit die Website auch entpackt per Doppelklick läuft.
+use_directory_urls: false
 
 theme:
   name: material
