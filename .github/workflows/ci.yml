@@ -1,6 +1,7 @@
 # Automatische Prüfungen bei jedem Push und Pull Request.
 #
-#   test    Unit-Tests und Typprüfung (mypy --strict) mit mehreren Python-Versionen
+#   test    Unit-Tests (pytest) und Typprüfung (mypy --strict) mit mehreren Python-Versionen
+#   lint    Ruff: Docstrings, Typ-Hinweise, Fehlerbehandlung (Regeln in pyproject.toml)
 #   docs    prüft, ob docs/ zum Quelltext passt (tools/gen_docs.py --check),
 #           baut die Website (mkdocs build --strict) und stellt sie im Lauf
 #           unter "Artifacts" als ZIP "dokumentation" bereit
@@ -35,12 +36,25 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: mypy installieren
-        run: pip install mypy
+      - name: mypy und pytest installieren
+        run: pip install mypy pytest
       - name: Unit-Tests
-        run: python -m unittest -v
+        run: python -m pytest -v
       - name: Typprüfung
         run: mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
+
+  lint:
+    name: Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Ruff installieren
+        run: pip install ruff
+      - name: Ruff
+        run: ruff check --output-format=github .
 
   docs:
     name: Dokumentation bauen
@@ -72,7 +86,7 @@ jobs:
 
   deploy:
     name: Auf GitHub Pages veröffentlichen
-    needs: [test, docs]
+    needs: [test, lint, docs]
     if: github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:

@@ -50,7 +50,7 @@ Legt den Canvas passend zur Spielfeldgröße an.
 | `cols` | <code>int</code> | erforderlich | Breite des Spielfelds in Zellen. |
 | `rows` | <code>int</code> | erforderlich | Höhe des Spielfelds in Zellen. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L22-L157)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L41-L195)
 
 <a id="view-renderer-cell"></a>
 
@@ -80,7 +80,7 @@ Zeichnet eine einzelne Zelle.
 | `oy` | <code>int</code> | <code>0</code> | Vertikaler Versatz in Pixeln. |
 | `ghost` | <code>bool</code> | <code>False</code> | True zeichnet nur einen Umriss statt eines gefüllten Blocks. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L45-L60)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L64-L80)
 
 <a id="view-renderer-draw"></a>
 
@@ -104,7 +104,7 @@ Zeichnet das komplette Fenster neu.
 | `menu` | <code>PauseMenu</code> | erforderlich | Das Pausenmenü; ist es offen, wird es darübergelegt. |
 | `anim` | <code>ClearAnimation &#124; None</code> | <code>None</code> | Die laufende Lösch-Animation oder None. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L62-L77)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L82-L97)
 
 <a id="view-renderer-draw_board"></a>
 
@@ -123,7 +123,7 @@ Zeichnet abgesetzte Blöcke, fallenden Stein und dessen Landeposition.
 | `game` | <code>Game</code> | erforderlich | Das Spiel, dessen Spielfeld gezeigt wird. |
 | `anim` | <code>ClearAnimation &#124; None</code> | erforderlich | Die laufende Lösch-Animation oder None. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L79-L103)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L99-L123)
 
 <a id="view-renderer-draw_panel"></a>
 
@@ -141,7 +141,7 @@ Zeichnet die Seitenleiste: Vorschau, Punkte und Tastenbelegung.
 |---|---|---|---|
 | `game` | <code>Game</code> | erforderlich | Das Spiel, dessen Werte gezeigt werden. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L105-L125)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L125-L145)
 
 <a id="view-renderer-draw_game_over"></a>
 
@@ -153,7 +153,7 @@ def draw_game_over() -> None
 
 Zeichnet den Game-Over-Hinweis mittig über das Spielfeld.
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L127-L134)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L147-L155)
 
 <a id="view-renderer-draw_menu"></a>
 
@@ -174,4 +174,25 @@ auf weißem Balken), die übrigen weiß auf schwarz.
 |---|---|---|---|
 | `menu` | <code>PauseMenu</code> | erforderlich | Das Pausenmenü mit dem ausgewählten Eintrag. |
 
-[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L136-L157)
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L157-L181)
+
+<a id="view-renderer-draw_overlay_box"></a>
+
+#### `draw_overlay_box()`
+
+```python
+def draw_overlay_box(half_height: int) -> None
+```
+
+Zeichnet einen gerahmten Kasten mittig über das Spielfeld.
+
+Der Kasten verdeckt das Spielfeld darunter; Game Over und Pausenmenü
+schreiben ihren Text hinein.
+
+**Parameter:**
+
+| Name | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `half_height` | <code>int</code> | erforderlich | Halbe Höhe des Kastens in Pixeln. |
+
+[Quelltext: `view.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/view.py#L183-L195)

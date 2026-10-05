@@ -37,12 +37,34 @@ Zustand des Pausenmenüs.
 | Name | Typ | Beschreibung |
 |---|---|---|
 | `ITEMS` | <code>tuple[str, ...]</code> | Die Einträge in der angezeigten Reihenfolge. |
-| `is_open` | <code>bool</code> | True, solange das Menü angezeigt wird (das Spiel ist pausiert). |
-| `index` | <code>int</code> | Index des ausgewählten Eintrags in `ITEMS`. |
 
 Erzeugt ein geschlossenes Menü mit "Weiter" ausgewählt.
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L11-L47)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L11-L55)
+
+<a id="menu-pausemenu-is_open"></a>
+
+#### `is_open` (Eigenschaft)
+
+```python
+is_open: bool
+```
+
+True, solange das Menü angezeigt wird (das Spiel ist pausiert).
+
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L26-L28)
+
+<a id="menu-pausemenu-index"></a>
+
+#### `index` (Eigenschaft)
+
+```python
+index: int
+```
+
+Index des ausgewählten Eintrags in `ITEMS`.
+
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L31-L33)
 
 <a id="menu-pausemenu-selected"></a>
 
@@ -54,7 +76,7 @@ selected: str
 
 Der Text des ausgewählten Eintrags.
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L28-L30)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L36-L38)
 
 <a id="menu-pausemenu-open"></a>
 
@@ -66,7 +88,7 @@ def open() -> None
 
 Öffnet das Menü mit "Weiter" ausgewählt.
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L32-L35)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L40-L43)
 
 <a id="menu-pausemenu-close"></a>
 
@@ -78,7 +100,7 @@ def close() -> None
 
 Schließt das Menü.
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L37-L39)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L45-L47)
 
 <a id="menu-pausemenu-up"></a>
 
@@ -90,7 +112,7 @@ def up() -> None
 
 Wählt den vorherigen Eintrag (vom ersten geht es zum letzten).
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L41-L43)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L49-L51)
 
 <a id="menu-pausemenu-down"></a>
 
@@ -102,4 +124,4 @@ def down() -> None
 
 Wählt den nächsten Eintrag (vom letzten geht es zum ersten).
 
-[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L45-L47)
+[Quelltext: `menu.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/menu.py#L53-L55)

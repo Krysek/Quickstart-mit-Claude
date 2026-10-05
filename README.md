@@ -39,6 +39,7 @@ Entstanden als Quickstart-Projekt zum Programmieren mit
 - Komplett auf Deutsch, durchgehend mit Docstrings kommentiert
 - Spiellogik getrennt von der Oberfläche und mit **Unit-Tests** abgesichert
 - Vollständig mit **Type Hints** versehen (geprüft mit `mypy --strict`)
+- Docstrings, Typ-Hinweise und Fehlerbehandlung geprüft mit **Ruff**
 - **Dokumentation** mit Diagrammen und API-Referenz, direkt auf GitHub lesbar
   und zusätzlich als Website (MkDocs)
 
@@ -59,14 +60,19 @@ python "Quickstart mit Claude/Quickstart_mit_Claude.py"
 Alternativ lässt sich die Projektmappe `Quickstart mit Claude.sln` in
 **Visual Studio** öffnen und dort mit <kbd>F5</kbd> starten.
 
-## 🧪 Tests
+## 🧪 Tests und Prüfungen
 
-Die Tests nutzen nur `unittest` aus der Standardbibliothek:
+Die Werkzeuge stehen in `requirements-dev.txt` (Installation siehe
+[Dokumentation](#-dokumentation)). Im Projektordner:
 
 ```bash
-cd "Quickstart mit Claude"
-python -m unittest -v
+python -m pytest -v                  # Unit-Tests
+ruff check .                         # Docstrings, Typ-Hinweise, Fehlerbehandlung
 ```
+
+Die Tests sind als `unittest`-Klassen geschrieben und laufen deshalb auch ohne
+pytest: `python -m unittest -v` im Ordner `Quickstart mit Claude`. Die
+Ruff-Regeln stehen in `pyproject.toml`.
 
 ## 📚 Dokumentation
 
@@ -79,11 +85,11 @@ GitHub direkt darstellt. Sie entstehen so:
 
 | Datei | Herkunft |
 |---|---|
-| [`docs/Diagramme.md`](docs/Diagramme.md) | von Hand gepflegt, einzige Quelle aller Diagramme |
+| [`docs/architecture.md`](docs/architecture.md) | von Hand gepflegt, einzige Quelle aller Diagramme |
 | `docs/index.md`, `docs/api/*.md` | **erzeugt** mit `tools/gen_docs.py` aus den Vorlagen in `doc_templates/` |
 
 Der Generator liest die Docstrings und Type Hints aus dem Quelltext und fügt die
-Diagramme aus `docs/Diagramme.md` sowie die Tabellen zu Steuerung und Punkten
+Diagramme aus `docs/architecture.md` sowie die Tabellen zu Steuerung und Punkten
 aus dieser README ein. Erzeugte Dateien also nie von Hand ändern, sondern
 Quelltext oder Vorlage anpassen und neu erzeugen.
 
@@ -127,7 +133,8 @@ mypy --strict model.py menu.py animation.py view.py Quickstart_mit_Claude.py
 Bei jedem Push prüft [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 auf GitHub automatisch:
 
-- die Unit-Tests und `mypy --strict` mit Python 3.11, 3.12 und 3.13
+- die Unit-Tests (pytest) und `mypy --strict` mit Python 3.11, 3.12 und 3.13
+- Docstrings, Typ-Hinweise und Fehlerbehandlung mit Ruff
 - ob die erzeugte Dokumentation in `docs/` zum aktuellen Quelltext passt
 - ob sich die Dokumentations-Website fehlerfrei bauen lässt; sie liegt danach
   im Lauf unter *Artifacts* als ZIP `dokumentation` zum Herunterladen bereit
@@ -188,12 +195,13 @@ bis zum Minimum von 80 ms.
 ├── .github/workflows/ci.yml        # automatische Prüfungen auf GitHub
 ├── docs/                           # Dokumentation, direkt auf GitHub lesbar
 │   ├── index.md                    # Startseite (erzeugt)
-│   ├── Diagramme.md                # alle Diagramme (Mermaid), von Hand gepflegt
+│   ├── architecture.md             # alle Diagramme (Mermaid), von Hand gepflegt
 │   └── api/                        # API-Referenz pro Modul (erzeugt)
 ├── doc_templates/                  # Vorlagen für die erzeugten Seiten in docs/
 ├── tools/gen_docs.py               # erzeugt docs/ aus Vorlagen und Quelltext
 ├── mkdocs.yml                      # Konfiguration der Dokumentations-Website
-├── requirements-dev.txt            # Werkzeuge: griffe, MkDocs, mypy
+├── pyproject.toml                  # Konfiguration von Ruff und pytest
+├── requirements-dev.txt            # Werkzeuge: griffe, MkDocs, mypy, pytest, Ruff
 └── Quickstart mit Claude.sln       # Visual-Studio-Projektmappe
 ```
 
@@ -223,20 +231,28 @@ Ereignisse und ruft in der `TetrisApp` drei Callbacks auf:
 - `animate_clear()` – spielt die Animation beim Löschen von Reihen ab
 
 Ausführliche Klassen- und Ablaufdiagramme gibt es in
-[`docs/Diagramme.md`](docs/Diagramme.md), alle Klassen und Methoden in der
+[`docs/architecture.md`](docs/architecture.md), alle Klassen und Methoden in der
 API-Referenz, die über [`docs/index.md`](docs/index.md) erreichbar ist.
 
 ## ⚙️ Anpassen
 
-Größe und Aussehen lassen sich über Konstanten ändern, die Spielfeldgröße in
+Spielregeln und Aussehen lassen sich über Konstanten ändern, die Regeln in
 `model.py` und das Aussehen in `view.py`:
 
-```python
-COLS, ROWS = 10, 20          # model.py: Größe des Spielfelds in Zellen
+| Konstante | Standard | Bedeutung |
+|---|---|---|
+| `COLS`, `ROWS` | `10`, `20` | Größe des Spielfelds in Zellen |
+| `LINES_PER_LEVEL` | `10` | gelöschte Reihen bis zum nächsten Level |
+| `START_DELAY_MS` | `500` | Spieltakt in Level 1 in ms |
+| `DELAY_STEP_MS` | `45` | um so viele ms wird der Takt pro Level kürzer |
+| `MIN_DELAY_MS` | `80` | kürzester Spieltakt in ms |
+| `SOFT_DROP_POINTS` | `1` | Punkte pro Zeile beim schnellen Fallenlassen |
+| `HARD_DROP_POINTS` | `2` | Punkte pro Zeile beim sofortigen Fallenlassen |
+| `LINE_SCORES` | `(0, 100, 300, 500, 800)` | Punkte für 0 bis 4 Reihen, mal Level |
+| `CELL` | `30` | `view.py`: Kantenlänge einer Zelle in Pixeln |
+| `PANEL` | `180` | `view.py`: Breite der Seitenleiste in Pixeln |
+| `BG`, `FG` | `"black"`, `"white"` | `view.py`: Hintergrund- und Vordergrundfarbe |
 
-CELL = 30                    # view.py: Kantenlänge einer Zelle in Pixeln
-PANEL = 180                  # Breite der Seitenleiste in Pixeln
-BG, FG = "black", "white"    # Hintergrund- und Vordergrundfarbe
-```
-
-Wer es bunt mag, setzt z. B. `BG, FG = "navy", "gold"`.
+Weitere Abstände und Größen in Pixeln (Vorschau, Menü, Game-Over-Kasten)
+stehen kommentiert am Anfang von `view.py`. Wer es bunt mag, setzt z. B.
+`BG, FG = "navy", "gold"`.

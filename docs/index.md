@@ -53,7 +53,7 @@ drei Module darin importiert werden. Nur `view.py` und
 
 ## Weiterlesen
 
-- [Architektur und Abläufe](Diagramme.md): Klassendiagramm, Spielzustände und
+- [Architektur und Abläufe](architecture.md): Klassendiagramm, Spielzustände und
   die Abläufe von Spieltakt, Animation und Tastatur
 - **API-Referenz**: alle Klassen und Methoden, erzeugt aus den Docstrings und
   Type Hints im Quelltext

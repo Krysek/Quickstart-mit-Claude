@@ -12,7 +12,7 @@ flowchart TD
     sca["start_clear_animation()<br/>cancel_tick(),<br/>anim = ClearAnimation(...)"] --> anim
     anim["animate_clear()<br/>delay = anim.step()"] --> q{"delay?"}
     q -->|"70 ms: Blinkphase"| blink["anim.flash wechselt<br/>Reihen gefüllt / als Umriss"]
-    q -->|"40 ms: Auflösephase"| wipe["anim.wiped += 1<br/>Renderer blendet Spalten<br/>von der Mitte aus aus"]
+    q -->|"40 ms: Auflösephase"| wipe["je Seite eine Spalte mehr aufgelöst<br/>Renderer blendet Spalten<br/>von der Mitte aus aus"]
     blink --> again["draw()<br/>root.after(delay, animate_clear)"]
     wipe --> again
     q -->|"None: fertig"| fin["game.finish_clear()<br/>Reihen entfernen, Punkte und Level,<br/>spawn(), draw()"]
@@ -64,9 +64,6 @@ Die Animation hat zwei Phasen:
 | `WIPE_DELAY` | <code>int</code> | Dauer eines Auflöseschritts in ms. |
 | `rows` | <code>list[int]</code> | Zeilennummern der vollen Reihen. |
 | `cols` | <code>int</code> | Breite des Spielfelds. |
-| `frame` | <code>int</code> | Nummer des nächsten Schritts. |
-| `flash` | <code>bool</code> | True, wenn die Reihen gerade als Umriss gezeichnet werden. |
-| `wiped` | <code>int</code> | Wie viele Spalten links und rechts der Mitte schon aufgelöst sind. |
 
 Bereitet die Animation vor; den ersten Schritt macht `step()`.
 
@@ -77,7 +74,19 @@ Bereitet die Animation vor; den ersten Schritt macht `step()`.
 | `rows` | <code>list[int]</code> | erforderlich | Zeilennummern der vollen Reihen. |
 | `cols` | <code>int</code> | erforderlich | Breite des Spielfelds in Zellen. |
 
-[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L11-L78)
+[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L11-L80)
+
+<a id="animation-clearanimation-flash"></a>
+
+#### `flash` (Eigenschaft)
+
+```python
+flash: bool
+```
+
+True, wenn die Reihen gerade als Umriss gezeichnet werden.
+
+[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L48-L50)
 
 <a id="animation-clearanimation-step"></a>
 
@@ -96,7 +105,7 @@ Geht einen Schritt weiter.
 | <code>int &#124; None</code> | Die Wartezeit bis zum nächsten Schritt in ms, oder None, wenn die |
 | <code>int &#124; None</code> | Animation vorbei ist. |
 
-[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L50-L68)
+[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L52-L70)
 
 <a id="animation-clearanimation-hides"></a>
 
@@ -114,4 +123,4 @@ Gibt True zurück, wenn die Spalte schon aufgelöst ist.
 |---|---|---|---|
 | `col` | <code>int</code> | erforderlich | Spalte im Spielfeld. |
 
-[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L70-L78)
+[Quelltext: `animation.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/animation.py#L72-L80)

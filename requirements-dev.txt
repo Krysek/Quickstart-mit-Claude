@@ -9,5 +9,7 @@ griffe>=2.0               # liest Docstrings und Type Hints (tools/gen_docs.py)
 mkdocs>=1.6,<2            # Website; MkDocs 2.0 ist inkompatibel mit Material
 mkdocs-material>=9.7,<10
 
-# Typprüfung
-mypy
+# Prüfungen
+mypy                      # Typprüfung (mypy --strict)
+pytest                    # Unit-Tests
+ruff                      # Docstrings, Typ-Hinweise, Fehlerbehandlung (pyproject.toml)

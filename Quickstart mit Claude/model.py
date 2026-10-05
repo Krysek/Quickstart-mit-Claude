@@ -34,6 +34,16 @@ LINE_SCORES = (0, 100, 300, 500, 800)
 # Versatz in Spalten, der beim Drehen nacheinander ausprobiert wird ("Wall Kick").
 KICKS = (0, -1, 1, -2, 2)
 
+SOFT_DROP_POINTS = 1         # Punkte pro Zeile beim schnellen Fallenlassen
+HARD_DROP_POINTS = 2         # Punkte pro Zeile beim sofortigen Fallenlassen
+LINES_PER_LEVEL = 10         # gelöschte Reihen bis zum nächsten Level
+
+# Spieltakt in ms: wird pro Level kürzer, damit das Spiel schwerer wird,
+# aber nie kürzer als MIN_DELAY_MS, damit es spielbar bleibt.
+START_DELAY_MS = 500
+DELAY_STEP_MS = 45
+MIN_DELAY_MS = 80
+
 
 @dataclass(frozen=True)
 class Piece:
@@ -84,7 +94,6 @@ class Board:
     Attributes:
         cols: Breite in Zellen.
         rows: Höhe in Zellen.
-        grid: `grid[zeile][spalte]`, 1 = belegt, 0 = frei.
     """
 
     def __init__(self, cols: int = COLS, rows: int = ROWS) -> None:
@@ -96,7 +105,12 @@ class Board:
         """
         self.cols: int = cols
         self.rows: int = rows
-        self.grid: list[list[int]] = [[0] * cols for _ in range(rows)]
+        self._grid: list[list[int]] = [[0] * cols for _ in range(rows)]
+
+    @property
+    def grid(self) -> tuple[tuple[int, ...], ...]:
+        """Schreibgeschützte Kopie des Spielfelds: `grid[zeile][spalte]`, 1 = belegt."""
+        return tuple(tuple(row) for row in self._grid)
 
     def collides(self, piece: Piece) -> bool:
         """Prüft, ob ein Stein an seiner Position keinen Platz hätte.
@@ -112,7 +126,7 @@ class Board:
         for c, r in piece.cells():
             if c < 0 or c >= self.cols or r >= self.rows:
                 return True
-            if r >= 0 and self.grid[r][c]:
+            if r >= 0 and self._grid[r][c]:
                 return True
         return False
 
@@ -124,11 +138,11 @@ class Board:
         """
         for c, r in piece.cells():
             if r >= 0:
-                self.grid[r][c] = 1
+                self._grid[r][c] = 1
 
     def full_rows(self) -> list[int]:
         """Gibt die Zeilennummern aller vollständig belegten Reihen zurück."""
-        return [r for r, row in enumerate(self.grid) if all(row)]
+        return [r for r, row in enumerate(self._grid) if all(row)]
 
     def remove_rows(self, rows: list[int]) -> None:
         """Entfernt die angegebenen Reihen; darüberliegende rutschen nach.
@@ -138,8 +152,8 @@ class Board:
         Args:
             rows: Zeilennummern der zu entfernenden Reihen.
         """
-        remaining = [row for r, row in enumerate(self.grid) if r not in rows]
-        self.grid = [[0] * self.cols for _ in range(len(rows))] + remaining
+        remaining = [row for r, row in enumerate(self._grid) if r not in rows]
+        self._grid = [[0] * self.cols for _ in range(len(rows))] + remaining
 
 
 class Bag:
@@ -147,11 +161,6 @@ class Bag:
 
     Jede Form kommt pro Runde genau einmal vor, in zufälliger Reihenfolge.
     So gibt es keine langen Durststrecken ohne einen bestimmten Stein.
-
-    Attributes:
-        shapes: Die Formen, die der Beutel enthält.
-        rng: Der Zufallsgenerator zum Mischen.
-        items: Die in dieser Runde noch nicht gezogenen Formen.
     """
 
     def __init__(self, shapes: Sequence[Shape] = SHAPES,
@@ -162,16 +171,17 @@ class Bag:
             shapes: Die Formen, die der Beutel enthält.
             rng: Zufallsgenerator (z. B. `random.Random(42)` für Tests).
         """
-        self.shapes: Sequence[Shape] = shapes
-        self.rng: random.Random = rng or random.Random()
-        self.items: list[Shape] = []
+        self._shapes: Sequence[Shape] = shapes
+        self._rng: random.Random = rng or random.Random()
+        # Die in dieser Runde noch nicht gezogenen Formen.
+        self._items: list[Shape] = []
 
     def take(self) -> Shape:
         """Zieht die nächste Form; ein leerer Beutel wird neu gefüllt und gemischt."""
-        if not self.items:
-            self.items = list(self.shapes)
-            self.rng.shuffle(self.items)
-        return self.items.pop()
+        if not self._items:
+            self._items = list(self._shapes)
+            self._rng.shuffle(self._items)
+        return self._items.pop()
 
 
 class GameState(Enum):
@@ -197,36 +207,67 @@ class Game:
     [`finish_clear`][model.Game.finish_clear] entfernt sie. Dazwischen kann
     die Oberfläche eine Animation abspielen.
 
-    Attributes:
-        board: Das Spielfeld.
-        bag: Der 7er-Beutel.
-        piece: Der aktuell fallende Stein.
-        next_shape: Form des nächsten Steins (für die Vorschau).
-        score: Punktestand.
-        lines: Anzahl der bisher gelöschten Reihen.
-        level: Aktuelles Level (steigt alle 10 Reihen).
-        state: Der aktuelle [`GameState`][model.GameState].
-        clearing: Zeilennummern der vollen Reihen im Zustand `CLEARING`.
+    Der Spielzustand ist nur lesbar (Properties); ändern lässt er sich
+    ausschließlich über die Aktionen, damit die Regeln immer gelten.
     """
 
-    def __init__(self, cols: int = COLS, rows: int = ROWS,
-                 rng: random.Random | None = None) -> None:
-        """Startet ein neues Spiel mit leerem Spielfeld und erstem Stein.
+    def __init__(self, board: Board | None = None, bag: Bag | None = None) -> None:
+        """Startet ein neues Spiel mit dem ersten Stein.
 
         Args:
-            cols: Breite des Spielfelds in Zellen.
-            rows: Höhe des Spielfelds in Zellen.
-            rng: Zufallsgenerator für den 7er-Beutel (z. B. für Tests).
+            board: Das Spielfeld; ohne Angabe ein leeres mit `COLS` x `ROWS` Zellen.
+            bag: Der 7er-Beutel; ohne Angabe einer mit zufälliger Reihenfolge
+                (für Tests z. B. `Bag(rng=random.Random(0))`).
         """
-        self.board: Board = Board(cols, rows)
-        self.bag: Bag = Bag(rng=rng)
-        self.score: int = 0
-        self.lines: int = 0
-        self.level: int = 1
-        self.state: GameState = GameState.PLAYING
-        self.clearing: list[int] = []
-        self.next_shape: Shape = self.bag.take()
-        self.piece: Piece = self._spawn_piece()
+        self._board: Board = board or Board()
+        self._bag: Bag = bag or Bag()
+        self._score: int = 0
+        self._lines: int = 0
+        self._level: int = 1
+        self._state: GameState = GameState.PLAYING
+        self._clearing: list[int] = []
+        self._next_shape: Shape = self._bag.take()
+        self._piece: Piece = self._spawn_piece()
+
+    @property
+    def board(self) -> Board:
+        """Das Spielfeld."""
+        return self._board
+
+    @property
+    def piece(self) -> Piece:
+        """Der aktuell fallende Stein."""
+        return self._piece
+
+    @property
+    def next_shape(self) -> Shape:
+        """Form des nächsten Steins (für die Vorschau)."""
+        return self._next_shape
+
+    @property
+    def score(self) -> int:
+        """Punktestand."""
+        return self._score
+
+    @property
+    def lines(self) -> int:
+        """Anzahl der bisher gelöschten Reihen."""
+        return self._lines
+
+    @property
+    def level(self) -> int:
+        """Aktuelles Level (steigt alle `LINES_PER_LEVEL` Reihen)."""
+        return self._level
+
+    @property
+    def state(self) -> GameState:
+        """Der aktuelle [`GameState`][model.GameState]."""
+        return self._state
+
+    @property
+    def clearing(self) -> list[int]:
+        """Zeilennummern der vollen Reihen im Zustand `CLEARING` (als Kopie)."""
+        return list(self._clearing)
 
     @property
     def tick_delay(self) -> int:
@@ -234,28 +275,28 @@ class Game:
 
         Beginnt bei 500 ms und sinkt pro Level um 45 ms, aber nie unter 80 ms.
         """
-        return max(80, 500 - (self.level - 1) * 45)
+        return max(MIN_DELAY_MS, START_DELAY_MS - (self._level - 1) * DELAY_STEP_MS)
 
     def _spawn_piece(self) -> Piece:
         """Erzeugt den nächsten Stein oben in der Mitte und zieht einen neuen."""
-        shape = self.next_shape
-        self.next_shape = self.bag.take()
-        return Piece(shape, (self.board.cols - len(shape[0])) // 2, 0)
+        shape = self._next_shape
+        self._next_shape = self._bag.take()
+        return Piece(shape, (self._board.cols - len(shape[0])) // 2, 0)
 
     def spawn(self) -> None:
         """Lässt den nächsten Stein oben in der Mitte erscheinen.
 
         Ist dort kein Platz mehr, wechselt das Spiel zu `GAME_OVER`.
         """
-        self.piece = self._spawn_piece()
-        if self.board.collides(self.piece):
-            self.state = GameState.GAME_OVER
+        self._piece = self._spawn_piece()
+        if self._board.collides(self._piece):
+            self._state = GameState.GAME_OVER
 
     def _try(self, piece: Piece) -> bool:
         """Übernimmt `piece` als fallenden Stein, falls er Platz hat."""
-        if self.state is not GameState.PLAYING or self.board.collides(piece):
+        if self._state is not GameState.PLAYING or self._board.collides(piece):
             return False
-        self.piece = piece
+        self._piece = piece
         return True
 
     def move(self, dx: int, dy: int) -> bool:
@@ -268,7 +309,7 @@ class Game:
         Returns:
             True, wenn der Stein verschoben wurde, sonst False.
         """
-        return self._try(self.piece.moved(dx, dy))
+        return self._try(self._piece.moved(dx, dy))
 
     def rotate(self) -> bool:
         """Dreht den fallenden Stein im Uhrzeigersinn, wenn möglich.
@@ -280,7 +321,7 @@ class Game:
         Returns:
             True, wenn der Stein gedreht wurde, sonst False.
         """
-        rotated = self.piece.rotated()
+        rotated = self._piece.rotated()
         for dx in KICKS:
             if self._try(rotated.moved(dx, 0)):
                 return True
@@ -293,7 +334,7 @@ class Game:
             True, wenn der Stein gefallen ist, sonst False.
         """
         if self.move(0, 1):
-            self.score += 1
+            self._score += SOFT_DROP_POINTS
             return True
         return False
 
@@ -305,11 +346,11 @@ class Game:
         Returns:
             True, wenn dadurch Reihen voll sind (siehe [`lock`][model.Game.lock]).
         """
-        if self.state is not GameState.PLAYING:
+        if self._state is not GameState.PLAYING:
             return False
         target = self.ghost()
-        self.score += 2 * (target.y - self.piece.y)
-        self.piece = target
+        self._score += HARD_DROP_POINTS * (target.y - self._piece.y)
+        self._piece = target
         return self.lock()
 
     def step(self) -> bool:
@@ -319,7 +360,7 @@ class Game:
             True, wenn der Stein abgesetzt wurde und dadurch Reihen voll sind
                 (siehe [`lock`][model.Game.lock]).
         """
-        if self.state is GameState.PLAYING and not self.move(0, 1):
+        if self._state is GameState.PLAYING and not self.move(0, 1):
             return self.lock()
         return False
 
@@ -333,11 +374,11 @@ class Game:
             True, wenn Reihen voll sind und auf
                 [`finish_clear`][model.Game.finish_clear] warten.
         """
-        self.board.place(self.piece)
-        full = self.board.full_rows()
+        self._board.place(self._piece)
+        full = self._board.full_rows()
         if full:
-            self.clearing = full
-            self.state = GameState.CLEARING
+            self._clearing = full
+            self._state = GameState.CLEARING
             return True
         self.spawn()
         return False
@@ -348,15 +389,15 @@ class Game:
         Aktualisiert Punkte, Reihenzahl und Level und lässt den nächsten
         Stein erscheinen.
         """
-        if self.state is not GameState.CLEARING:
+        if self._state is not GameState.CLEARING:
             return
-        cleared = len(self.clearing)
-        self.board.remove_rows(self.clearing)
-        self.clearing = []
-        self.lines += cleared
-        self.score += LINE_SCORES[cleared] * self.level
-        self.level = self.lines // 10 + 1
-        self.state = GameState.PLAYING
+        cleared = len(self._clearing)
+        self._board.remove_rows(self._clearing)
+        self._clearing = []
+        self._lines += cleared
+        self._score += LINE_SCORES[cleared] * self._level
+        self._level = self._lines // LINES_PER_LEVEL + 1
+        self._state = GameState.PLAYING
         self.spawn()
 
     def ghost(self) -> Piece:
@@ -364,7 +405,7 @@ class Game:
 
         Wird für den Umriss ("Ghost") genutzt, der die Landeposition anzeigt.
         """
-        piece = self.piece
-        while not self.board.collides(piece.moved(0, 1)):
+        piece = self._piece
+        while not self._board.collides(piece.moved(0, 1)):
             piece = piece.moved(0, 1)
         return piece

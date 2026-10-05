@@ -11,7 +11,7 @@ tkinter ruft ihre Callbacks auf:
 flowchart TD
     start(["Programmstart"]) --> main["main()<br/>root = tk.Tk()"]
     main --> init["TetrisApp.__init__()<br/>Renderer und PauseMenu anlegen,<br/>on_key an Tasten binden"]
-    init --> ng["new_game()<br/>Timer abbrechen, neues Game()"]
+    init --> ng["new_game()<br/>Timer abbrechen,<br/>neues Game(Board(cols, rows))"]
     ng --> sched["schedule()<br/>root.after(game.tick_delay, tick)"]
     sched --> loop{{"root.mainloop()<br/>Tk wartet auf Ereignisse"}}
 
@@ -64,8 +64,9 @@ flowchart TD
     r -->|ja| ng["new_game()"]
     r -->|nein| blocked{"state ≠ PLAYING?"}
     blocked -->|"ja (Esc bei GAME_OVER: destroy())"| ignore["Taste ignorieren"]
-    blocked -->|nein| act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Esc / P menu.open()"]
-    blocked -->|"nein, Leertaste"| hd{"game.hard_drop()<br/>volle Reihen?"}
+    blocked -->|nein| gk["on_game_key()"]
+    gk --> act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Esc / P menu.open()"]
+    gk -->|Leertaste| hd{"game.hard_drop()<br/>volle Reihen?"}
     hd -->|ja| ksca["start_clear_animation()"]
     hd -->|nein| kdraw
     act --> kdraw["draw()"]
@@ -122,7 +123,13 @@ Stein, Punktestand, gelöschten Reihen, Level und Tastenbelegung.
 ### Klasse `TetrisApp`
 
 ```python
-class TetrisApp(root: tk.Tk, cols: int = COLS, rows: int = ROWS)
+class TetrisApp(
+    root: tk.Tk,
+    cols: int = COLS,
+    rows: int = ROWS,
+    renderer: Renderer | None = None,
+    menu: PauseMenu | None = None,
+)
 ```
 
 Verbindet Spiel, Menü und Darstellung mit tkinter.
@@ -141,10 +148,6 @@ Während der Animation ist der Spieltakt angehalten.
 | `rows` | <code>int</code> | Höhe des Spielfelds in Zellen, für Spiel und Darstellung. |
 | `renderer` | <code>Renderer</code> | Zeichnet den Zustand auf den Canvas. |
 | `menu` | <code>PauseMenu</code> | Das Pausenmenü. |
-| `game` | <code>Game</code> | Das laufende Spiel. |
-| `anim` | <code>ClearAnimation &#124; None</code> | Die laufende Lösch-Animation oder None. |
-| `job` | <code>str &#124; None</code> | ID des geplanten nächsten Spieltakts (oder None). |
-| `anim_job` | <code>str &#124; None</code> | ID des geplanten nächsten Animationsschritts (oder None). |
 
 Baut das Fenster auf und startet das erste Spiel.
 
@@ -155,8 +158,10 @@ Baut das Fenster auf und startet das erste Spiel.
 | `root` | <code>tk.Tk</code> | erforderlich | Das tkinter-Hauptfenster, in dem das Spiel läuft. |
 | `cols` | <code>int</code> | <code>COLS</code> | Breite des Spielfelds in Zellen. |
 | `rows` | <code>int</code> | <code>ROWS</code> | Höhe des Spielfelds in Zellen. |
+| `renderer` | <code>Renderer &#124; None</code> | <code>None</code> | Zeichnet den Zustand; ohne Angabe einer für `root` mit `cols` x `rows` Zellen. |
+| `menu` | <code>PauseMenu &#124; None</code> | <code>None</code> | Das Pausenmenü; ohne Angabe ein neues, geschlossenes. |
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L39-L242)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L39-L254)
 
 <a id="quickstart_mit_claude-tetrisapp-new_game"></a>
 
@@ -172,7 +177,7 @@ Bricht dabei einen laufenden Spieltakt und eine laufende
 Lösch-Animation ab, damit nach einem Neustart keine alten
 Zeitgeber weiterlaufen.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L81-L93)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L83-L95)
 
 <a id="quickstart_mit_claude-tetrisapp-cancel_tick"></a>
 
@@ -184,7 +189,7 @@ def cancel_tick() -> None
 
 Bricht den geplanten Spieltakt ab, falls es einen gibt.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L95-L99)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L97-L101)
 
 <a id="quickstart_mit_claude-tetrisapp-cancel_timers"></a>
 
@@ -196,7 +201,7 @@ def cancel_timers() -> None
 
 Bricht Spieltakt und Animationsschritt ab, falls geplant.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L101-L106)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L103-L108)
 
 <a id="quickstart_mit_claude-tetrisapp-draw"></a>
 
@@ -208,7 +213,7 @@ def draw() -> None
 
 Zeichnet den aktuellen Zustand neu.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L108-L110)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L110-L112)
 
 <a id="quickstart_mit_claude-tetrisapp-schedule"></a>
 
@@ -220,7 +225,7 @@ def schedule() -> None
 
 Plant den nächsten Spieltakt ein (Wartezeit je nach Level).
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L114-L116)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L116-L118)
 
 <a id="quickstart_mit_claude-tetrisapp-tick"></a>
 
@@ -236,7 +241,7 @@ Während einer Pause passiert nichts, der Takt läuft aber weiter.
 Bei Game Over oder während der Lösch-Animation wird kein neuer Takt
 geplant.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L118-L132)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L120-L134)
 
 <a id="quickstart_mit_claude-tetrisapp-start_clear_animation"></a>
 
@@ -251,7 +256,7 @@ Hält den Spieltakt an und startet die Animation für volle Reihen.
 Wird aufgerufen, wenn [`Game.step`](model.md#model-game-step) oder
 [`Game.hard_drop`](model.md#model-game-hard_drop) meldet, dass Reihen voll sind.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L136-L144)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L138-L146)
 
 <a id="quickstart_mit_claude-tetrisapp-animate_clear"></a>
 
@@ -266,7 +271,7 @@ Zeigt einen Schritt der Lösch-Animation und plant den nächsten.
 Ist die Animation vorbei, werden die Reihen entfernt und der
 Spieltakt läuft wieder an.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L146-L163)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L148-L165)
 
 <a id="quickstart_mit_claude-tetrisapp-on_key"></a>
 
@@ -278,10 +283,10 @@ def on_key(event: tk.Event) -> None
 
 Reagiert auf Tastendrücke (Belegung siehe Modul-Docstring).
 
-Ist das Pausenmenü offen, gehen alle Tasten an `on_menu_key()`.
-R funktioniert immer. Esc und P öffnen im laufenden Spiel das
-Pausenmenü, bei Game Over beendet Esc das Programm. Während der
-Lösch-Animation sind alle Tasten außer R gesperrt.
+Ist das Pausenmenü offen, gehen alle Tasten an `on_menu_key()`, im
+laufenden Spiel an `on_game_key()`. R funktioniert immer, bei Game
+Over beendet Esc das Programm. Während der Lösch-Animation sind alle
+Tasten außer R gesperrt.
 
 **Parameter:**
 
@@ -289,7 +294,28 @@ Lösch-Animation sind alle Tasten außer R gesperrt.
 |---|---|---|---|
 | `event` | <code>tk.Event</code> | erforderlich | Das tkinter-Tastaturereignis. |
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L167-L205)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L169-L191)
+
+<a id="quickstart_mit_claude-tetrisapp-on_game_key"></a>
+
+#### `on_game_key()`
+
+```python
+def on_game_key(key: str) -> None
+```
+
+Verarbeitet Tastendrücke im laufenden Spiel.
+
+Esc und P öffnen das Pausenmenü, die Pfeiltasten bewegen und drehen
+den Stein, die Leertaste lässt ihn sofort fallen.
+
+**Parameter:**
+
+| Name | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `key` | <code>str</code> | erforderlich | Name der gedrückten Taste in Kleinbuchstaben (tkinter-keysym). |
+
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L193-L217)
 
 <a id="quickstart_mit_claude-tetrisapp-on_menu_key"></a>
 
@@ -311,7 +337,7 @@ R startet direkt neu.
 |---|---|---|---|
 | `key` | <code>str</code> | erforderlich | Name der gedrückten Taste in Kleinbuchstaben (tkinter-keysym). |
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L207-L231)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L219-L243)
 
 <a id="quickstart_mit_claude-tetrisapp-select_menu_item"></a>
 
@@ -323,7 +349,7 @@ def select_menu_item() -> None
 
 Führt den ausgewählten Menüeintrag aus: Weiter, Neustart oder Beenden.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L233-L242)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L245-L254)
 
 <a id="quickstart_mit_claude-main"></a>
 
@@ -335,4 +361,4 @@ def main() -> None
 
 Öffnet das Spielfenster und startet die tkinter-Ereignisschleife.
 
-[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L245-L249)
+[Quelltext: `Quickstart_mit_Claude.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/Quickstart_mit_Claude.py#L257-L261)

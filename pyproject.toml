@@ -1,0 +1,12 @@
+# Konfiguration der Entwicklungswerkzeuge (das Spiel selbst wird nicht paketiert).
+
+[tool.ruff.lint]
+# Standardregeln plus die Prüfungen des lokalen Claude-Code-Hooks:
+# Docstrings, Typ-Hinweise, pauschale except, print-Aufrufe, Komplexität.
+extend-select = ["D", "ANN", "BLE", "T20", "C901"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+testpaths = ["Quickstart mit Claude"]

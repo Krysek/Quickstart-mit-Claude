@@ -11,7 +11,7 @@ python "Quickstart mit Claude/Quickstart_mit_Claude.py"
 
 Das Spiel ist in Logik und Oberfläche aufgeteilt:
 
---8<-- "docs/Diagramme.md:module"
+--8<-- "docs/architecture.md:module"
 
 | Klasse | Modul | Aufgabe |
 |---|---|---|
@@ -26,7 +26,7 @@ Das Spiel ist in Logik und Oberfläche aufgeteilt:
 
 ## Weiterlesen
 
-- [Architektur und Abläufe](Diagramme.md): Klassendiagramm, Spielzustände und
+- [Architektur und Abläufe](architecture.md): Klassendiagramm, Spielzustände und
   die Abläufe von Spieltakt, Animation und Tastatur
 - **API-Referenz**: alle Klassen und Methoden, erzeugt aus den Docstrings und
   Type Hints im Quelltext

@@ -74,7 +74,7 @@ Bewegung erst ausprobieren und dann übernehmen kann.
 | `x` | <code>int</code> | Spalte der linken oberen Ecke von `shape`. |
 | `y` | <code>int</code> | Zeile der linken oberen Ecke von `shape`. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L38-L78)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L48-L88)
 
 <a id="model-piece-cells"></a>
 
@@ -92,7 +92,7 @@ Liefert die belegten Zellen des Steins im Spielfeld.
 |---|---|
 | <code>tuple[int, int]</code> | Paare `(spalte, zeile)` für jeden Block des Steins. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L56-L65)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L66-L75)
 
 <a id="model-piece-moved"></a>
 
@@ -111,7 +111,7 @@ Gibt einen um `dx` Spalten und `dy` Zeilen verschobenen Stein zurück.
 | `dx` | <code>int</code> | erforderlich | Verschiebung in Spalten (negativ = nach links). |
 | `dy` | <code>int</code> | erforderlich | Verschiebung in Zeilen (positiv = nach unten). |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L67-L74)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L77-L84)
 
 <a id="model-piece-rotated"></a>
 
@@ -123,7 +123,7 @@ def rotated() -> Piece
 
 Gibt den um 90° im Uhrzeigersinn gedrehten Stein zurück.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L76-L78)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L86-L88)
 
 <a id="model-board"></a>
 
@@ -141,7 +141,6 @@ Das Spielfeld mit den bereits abgesetzten Blöcken.
 |---|---|---|
 | `cols` | <code>int</code> | Breite in Zellen. |
 | `rows` | <code>int</code> | Höhe in Zellen. |
-| `grid` | <code>list[list[int]]</code> | `grid[zeile][spalte]`, 1 = belegt, 0 = frei. |
 
 Erzeugt ein leeres Spielfeld.
 
@@ -152,7 +151,19 @@ Erzeugt ein leeres Spielfeld.
 | `cols` | <code>int</code> | <code>COLS</code> | Breite in Zellen. |
 | `rows` | <code>int</code> | <code>ROWS</code> | Höhe in Zellen. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L81-L142)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L91-L156)
+
+<a id="model-board-grid"></a>
+
+#### `grid` (Eigenschaft)
+
+```python
+grid: tuple[tuple[int, ...], ...]
+```
+
+Schreibgeschützte Kopie des Spielfelds: `grid[zeile][spalte]`, 1 = belegt.
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L111-L113)
 
 <a id="model-board-collides"></a>
 
@@ -176,7 +187,7 @@ Prüft, ob ein Stein an seiner Position keinen Platz hätte.
 |---|---|
 | <code>bool</code> | True, wenn ein Block links, rechts oder unten aus dem Spielfeld ragt oder ein belegtes Feld überdeckt, sonst False. Oben darf der Stein über das Spielfeld hinausragen. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L101-L117)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L115-L131)
 
 <a id="model-board-place"></a>
 
@@ -194,7 +205,7 @@ Trägt einen Stein fest ins Spielfeld ein (Teile oberhalb entfallen).
 |---|---|---|---|
 | `piece` | <code>Piece</code> | erforderlich | Der abzusetzende Stein. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L119-L127)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L133-L141)
 
 <a id="model-board-full_rows"></a>
 
@@ -206,7 +217,7 @@ def full_rows() -> list[int]
 
 Gibt die Zeilennummern aller vollständig belegten Reihen zurück.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L129-L131)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L143-L145)
 
 <a id="model-board-remove_rows"></a>
 
@@ -226,7 +237,7 @@ Oben kommen entsprechend viele leere Reihen dazu.
 |---|---|---|---|
 | `rows` | <code>list[int]</code> | erforderlich | Zeilennummern der zu entfernenden Reihen. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L133-L142)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L147-L156)
 
 <a id="model-bag"></a>
 
@@ -241,14 +252,6 @@ Der 7er-Beutel, aus dem die Steine gezogen werden.
 Jede Form kommt pro Runde genau einmal vor, in zufälliger Reihenfolge.
 So gibt es keine langen Durststrecken ohne einen bestimmten Stein.
 
-**Attribute:**
-
-| Name | Typ | Beschreibung |
-|---|---|---|
-| `shapes` | <code>Sequence[Shape]</code> | Die Formen, die der Beutel enthält. |
-| `rng` | <code>random.Random</code> | Der Zufallsgenerator zum Mischen. |
-| `items` | <code>list[Shape]</code> | Die in dieser Runde noch nicht gezogenen Formen. |
-
 Erzeugt einen leeren Beutel; er wird beim ersten Ziehen gefüllt.
 
 **Parameter:**
@@ -258,7 +261,7 @@ Erzeugt einen leeren Beutel; er wird beim ersten Ziehen gefüllt.
 | `shapes` | <code>Sequence[Shape]</code> | <code>SHAPES</code> | Die Formen, die der Beutel enthält. |
 | `rng` | <code>random.Random &#124; None</code> | <code>None</code> | Zufallsgenerator (z. B. `random.Random(42)` für Tests). |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L145-L174)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L159-L184)
 
 <a id="model-bag-take"></a>
 
@@ -270,7 +273,7 @@ def take() -> Shape
 
 Zieht die nächste Form; ein leerer Beutel wird neu gefüllt und gemischt.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L169-L174)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L179-L184)
 
 <a id="model-gamestate"></a>
 
@@ -290,14 +293,14 @@ Zustand des Spiels.
 | `CLEARING` | Volle Reihen warten auf [`finish_clear`](#model-game-finish_clear). |
 | `GAME_OVER` | Ein neuer Stein hatte keinen Platz mehr. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L177-L185)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L187-L195)
 
 <a id="model-game"></a>
 
 ### Klasse `Game`
 
 ```python
-class Game(cols: int = COLS, rows: int = ROWS, rng: random.Random | None = None)
+class Game(board: Board | None = None, bag: Bag | None = None)
 ```
 
 Ein Tetris-Spiel: Spielfeld, fallender Stein, Punkte und Level.
@@ -311,31 +314,115 @@ Zustand `CLEARING` und merkt sich die Reihen in `clearing`. Erst
 [`finish_clear`](#model-game-finish_clear) entfernt sie. Dazwischen kann
 die Oberfläche eine Animation abspielen.
 
-**Attribute:**
+Der Spielzustand ist nur lesbar (Properties); ändern lässt er sich
+ausschließlich über die Aktionen, damit die Regeln immer gelten.
 
-| Name | Typ | Beschreibung |
-|---|---|---|
-| `board` | <code>Board</code> | Das Spielfeld. |
-| `bag` | <code>Bag</code> | Der 7er-Beutel. |
-| `piece` | <code>Piece</code> | Der aktuell fallende Stein. |
-| `next_shape` | <code>Shape</code> | Form des nächsten Steins (für die Vorschau). |
-| `score` | <code>int</code> | Punktestand. |
-| `lines` | <code>int</code> | Anzahl der bisher gelöschten Reihen. |
-| `level` | <code>int</code> | Aktuelles Level (steigt alle 10 Reihen). |
-| `state` | <code>GameState</code> | Der aktuelle [`GameState`](#model-gamestate). |
-| `clearing` | <code>list[int]</code> | Zeilennummern der vollen Reihen im Zustand `CLEARING`. |
-
-Startet ein neues Spiel mit leerem Spielfeld und erstem Stein.
+Startet ein neues Spiel mit dem ersten Stein.
 
 **Parameter:**
 
 | Name | Typ | Standard | Beschreibung |
 |---|---|---|---|
-| `cols` | <code>int</code> | <code>COLS</code> | Breite des Spielfelds in Zellen. |
-| `rows` | <code>int</code> | <code>ROWS</code> | Höhe des Spielfelds in Zellen. |
-| `rng` | <code>random.Random &#124; None</code> | <code>None</code> | Zufallsgenerator für den 7er-Beutel (z. B. für Tests). |
+| `board` | <code>Board &#124; None</code> | <code>None</code> | Das Spielfeld; ohne Angabe ein leeres mit `COLS` x `ROWS` Zellen. |
+| `bag` | <code>Bag &#124; None</code> | <code>None</code> | Der 7er-Beutel; ohne Angabe einer mit zufälliger Reihenfolge (für Tests z. B. `Bag(rng=random.Random(0))`). |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L188-L370)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L198-L411)
+
+<a id="model-game-board"></a>
+
+#### `board` (Eigenschaft)
+
+```python
+board: Board
+```
+
+Das Spielfeld.
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L233-L235)
+
+<a id="model-game-piece"></a>
+
+#### `piece` (Eigenschaft)
+
+```python
+piece: Piece
+```
+
+Der aktuell fallende Stein.
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L238-L240)
+
+<a id="model-game-next_shape"></a>
+
+#### `next_shape` (Eigenschaft)
+
+```python
+next_shape: Shape
+```
+
+Form des nächsten Steins (für die Vorschau).
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L243-L245)
+
+<a id="model-game-score"></a>
+
+#### `score` (Eigenschaft)
+
+```python
+score: int
+```
+
+Punktestand.
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L248-L250)
+
+<a id="model-game-lines"></a>
+
+#### `lines` (Eigenschaft)
+
+```python
+lines: int
+```
+
+Anzahl der bisher gelöschten Reihen.
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L253-L255)
+
+<a id="model-game-level"></a>
+
+#### `level` (Eigenschaft)
+
+```python
+level: int
+```
+
+Aktuelles Level (steigt alle `LINES_PER_LEVEL` Reihen).
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L258-L260)
+
+<a id="model-game-state"></a>
+
+#### `state` (Eigenschaft)
+
+```python
+state: GameState
+```
+
+Der aktuelle [`GameState`](#model-gamestate).
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L263-L265)
+
+<a id="model-game-clearing"></a>
+
+#### `clearing` (Eigenschaft)
+
+```python
+clearing: list[int]
+```
+
+Zeilennummern der vollen Reihen im Zustand `CLEARING` (als Kopie).
+
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L268-L270)
 
 <a id="model-game-tick_delay"></a>
 
@@ -349,7 +436,7 @@ Wartezeit zwischen zwei Spieltakten in ms.
 
 Beginnt bei 500 ms und sinkt pro Level um 45 ms, aber nie unter 80 ms.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L232-L237)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L273-L278)
 
 <a id="model-game-spawn"></a>
 
@@ -363,7 +450,7 @@ Lässt den nächsten Stein oben in der Mitte erscheinen.
 
 Ist dort kein Platz mehr, wechselt das Spiel zu `GAME_OVER`.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L245-L252)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L286-L293)
 
 <a id="model-game-move"></a>
 
@@ -388,7 +475,7 @@ Verschiebt den fallenden Stein, falls dort Platz ist.
 |---|---|
 | <code>bool</code> | True, wenn der Stein verschoben wurde, sonst False. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L261-L271)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L302-L312)
 
 <a id="model-game-rotate"></a>
 
@@ -410,7 +497,7 @@ versetzt ("Wall Kick"). Klappt keine Variante, bleibt er unverändert.
 |---|---|
 | <code>bool</code> | True, wenn der Stein gedreht wurde, sonst False. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L273-L287)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L314-L328)
 
 <a id="model-game-soft_drop"></a>
 
@@ -428,7 +515,7 @@ Lässt den Stein eine Zeile fallen und gibt dafür 1 Punkt.
 |---|---|
 | <code>bool</code> | True, wenn der Stein gefallen ist, sonst False. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L289-L298)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L330-L339)
 
 <a id="model-game-hard_drop"></a>
 
@@ -448,7 +535,7 @@ Gibt 2 Punkte pro übersprungener Zeile.
 |---|---|
 | <code>bool</code> | True, wenn dadurch Reihen voll sind (siehe [`lock`](#model-game-lock)). |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L300-L313)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L341-L354)
 
 <a id="model-game-step"></a>
 
@@ -466,7 +553,7 @@ Ein Spieltakt: Der Stein fällt eine Zeile oder wird abgesetzt.
 |---|---|
 | <code>bool</code> | True, wenn der Stein abgesetzt wurde und dadurch Reihen voll sind (siehe [`lock`](#model-game-lock)). |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L315-L324)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L356-L365)
 
 <a id="model-game-lock"></a>
 
@@ -487,7 +574,7 @@ Andernfalls erscheint direkt der nächste Stein.
 |---|---|
 | <code>bool</code> | True, wenn Reihen voll sind und auf [`finish_clear`](#model-game-finish_clear) warten. |
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L326-L343)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L367-L384)
 
 <a id="model-game-finish_clear"></a>
 
@@ -502,7 +589,7 @@ Entfernt die vollen Reihen und setzt das Spiel fort.
 Aktualisiert Punkte, Reihenzahl und Level und lässt den nächsten
 Stein erscheinen.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L345-L360)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L386-L401)
 
 <a id="model-game-ghost"></a>
 
@@ -516,4 +603,4 @@ Gibt den Stein an der Position zurück, an der er landen würde.
 
 Wird für den Umriss ("Ghost") genutzt, der die Landeposition anzeigt.
 
-[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L362-L370)
+[Quelltext: `model.py`](https://github.com/Krysek/Quickstart-mit-Claude/blob/main/Quickstart%20mit%20Claude/model.py#L403-L411)

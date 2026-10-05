@@ -22,6 +22,7 @@ die passende Stelle der API-Doku.
 
 import argparse
 import html
+import logging
 import os
 import re
 import sys
@@ -29,6 +30,8 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import quote
 
 import griffe
+
+log = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "Quickstart mit Claude"
@@ -369,7 +372,8 @@ def generate() -> dict[Path, str]:
         text = template.read_text(encoding="utf-8")
         text = SNIPPET.sub(lambda m: read_snippet(m.group(1)), text)
 
-        def module_doc(match: re.Match[str]) -> str:
+        # page als Standardwert binden: die Funktion gehört zu genau dieser Vorlage.
+        def module_doc(match: re.Match[str], page: str = page) -> str:
             module = modules.get(match.group(1))
             if module is None:
                 raise ValueError(f"{page}: Modul '{match.group(1)}' fehlt in PAGES")
@@ -389,23 +393,25 @@ def main() -> int:
     parser.add_argument("--check", action="store_true",
                         help="nichts schreiben, nur prüfen, ob docs/ aktuell ist")
     args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     files = generate()
     outdated = [path for path, text in files.items()
                 if not path.exists() or path.read_text(encoding="utf-8") != text]
     if args.check:
         for path in outdated:
-            print(f"veraltet: {path.relative_to(ROOT).as_posix()}")
+            log.error("veraltet: %s", path.relative_to(ROOT).as_posix())
         if outdated:
-            print("Bitte 'python tools/gen_docs.py' ausführen und die Änderungen committen.")
+            log.error("Bitte 'python tools/gen_docs.py' ausführen und die Änderungen "
+                      "committen.")
             return 1
-        print(f"docs/ ist aktuell ({len(files)} erzeugte Dateien).")
+        log.info("docs/ ist aktuell (%d erzeugte Dateien).", len(files))
         return 0
     for path in outdated:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(files[path], encoding="utf-8", newline="\n")
-        print(f"geschrieben: {path.relative_to(ROOT).as_posix()}")
-    print(f"{len(files)} Dateien erzeugt, {len(outdated)} davon geändert.")
+        log.info("geschrieben: %s", path.relative_to(ROOT).as_posix())
+    log.info("%d Dateien erzeugt, %d davon geändert.", len(files), len(outdated))
     return 0
 
 

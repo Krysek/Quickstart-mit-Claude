@@ -25,9 +25,6 @@ class ClearAnimation:
         WIPE_DELAY: Dauer eines Auflöseschritts in ms.
         rows: Zeilennummern der vollen Reihen.
         cols: Breite des Spielfelds.
-        frame: Nummer des nächsten Schritts.
-        flash: True, wenn die Reihen gerade als Umriss gezeichnet werden.
-        wiped: Wie viele Spalten links und rechts der Mitte schon aufgelöst sind.
     """
 
     BLINK_FRAMES: ClassVar[int] = 6
@@ -43,9 +40,14 @@ class ClearAnimation:
         """
         self.rows: list[int] = rows
         self.cols: int = cols
-        self.frame: int = 0
-        self.flash: bool = False
-        self.wiped: int = 0
+        self._frame: int = 0                 # Nummer des nächsten Schritts
+        self._flash: bool = False
+        self._wiped: int = 0                 # aufgelöste Spalten je Seite der Mitte
+
+    @property
+    def flash(self) -> bool:
+        """True, wenn die Reihen gerade als Umriss gezeichnet werden."""
+        return self._flash
 
     def step(self) -> int | None:
         """Geht einen Schritt weiter.
@@ -55,16 +57,16 @@ class ClearAnimation:
             Animation vorbei ist.
         """
         wipe_frames = (self.cols + 1) // 2
-        if self.frame < self.BLINK_FRAMES:
-            self.flash = self.frame % 2 == 0
+        if self._frame < self.BLINK_FRAMES:
+            self._flash = self._frame % 2 == 0
             delay = self.BLINK_DELAY
-        elif self.frame < self.BLINK_FRAMES + wipe_frames:
-            self.flash = False
-            self.wiped += 1
+        elif self._frame < self.BLINK_FRAMES + wipe_frames:
+            self._flash = False
+            self._wiped += 1
             delay = self.WIPE_DELAY
         else:
             return None
-        self.frame += 1
+        self._frame += 1
         return delay
 
     def hides(self, col: int) -> bool:
@@ -75,4 +77,4 @@ class ClearAnimation:
         """
         left = (self.cols - 1) // 2 - col
         right = col - self.cols // 2
-        return max(left, right) < self.wiped
+        return max(left, right) < self._wiped

@@ -4,6 +4,6 @@
 
 Die komplette Spiellogik, ohne tkinter. Ein `Game` durchläuft diese Zustände:
 
---8<-- "docs/Diagramme.md:zustaende"
+--8<-- "docs/architecture.md:zustaende"
 
 ::: model

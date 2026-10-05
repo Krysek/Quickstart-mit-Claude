@@ -1,4 +1,4 @@
-# Tetris – Diagramme
+# Tetris – Architektur und Abläufe
 
 [← Startseite der Dokumentation](index.md)
 
@@ -56,16 +56,17 @@ classDiagram
         class Board {
             +int cols
             +int rows
-            +list grid
+            -list _grid
+            +grid tuple
             +collides(piece) bool
             +place(piece)
             +full_rows() list
             +remove_rows(rows)
         }
         class Bag {
-            +tuple shapes
-            +Random rng
-            +list items
+            -tuple _shapes
+            -Random _rng
+            -list _items
             +take() tuple
         }
         class GameState {
@@ -75,15 +76,16 @@ classDiagram
             GAME_OVER
         }
         class Game {
-            +Board board
-            +Bag bag
-            +Piece piece
-            +tuple next_shape
-            +int score
-            +int lines
-            +int level
-            +GameState state
-            +list clearing
+            -Bag _bag
+            +Game(board, bag)
+            +board Board
+            +piece Piece
+            +next_shape tuple
+            +score int
+            +lines int
+            +level int
+            +state GameState
+            +clearing list
             +tick_delay int
             +spawn()
             +move(dx, dy) bool
@@ -100,8 +102,8 @@ classDiagram
     namespace menu {
         class PauseMenu {
             +tuple ITEMS$
-            +bool is_open
-            +int index
+            +is_open bool
+            +index int
             +selected str
             +open()
             +close()
@@ -117,9 +119,9 @@ classDiagram
             +int WIPE_DELAY = 40$
             +list rows
             +int cols
-            +int frame
-            +bool flash
-            +int wiped
+            -int _frame
+            -int _wiped
+            +flash bool
             +step() Optional~int~
             +hides(col) bool
         }
@@ -135,6 +137,7 @@ classDiagram
             +draw_panel(game)
             +draw_menu(menu)
             +draw_game_over()
+            +draw_overlay_box(half_height)
             +cell(c, r, size, ox, oy, ghost)
         }
     }
@@ -145,10 +148,11 @@ classDiagram
         +int rows
         +Renderer renderer
         +PauseMenu menu
-        +Game game
-        +ClearAnimation anim
-        +str job
-        +str anim_job
+        -Game _game
+        -ClearAnimation _anim
+        -str _job
+        -str _anim_job
+        +TetrisApp(root, cols, rows, renderer, menu)
         +new_game()
         +cancel_tick()
         +cancel_timers()
@@ -158,18 +162,19 @@ classDiagram
         +start_clear_animation()
         +animate_clear()
         +on_key(event)
+        +on_game_key(key)
         +on_menu_key(key)
         +select_menu_item()
     }
 
-    Game *-- Board
-    Game *-- Bag
+    Game o-- Board
+    Game o-- Bag
     Game --> Piece : piece
     Game --> GameState : state
     Board ..> Piece : prüft / setzt ab
     TetrisApp *-- Game
-    TetrisApp *-- PauseMenu
-    TetrisApp *-- Renderer
+    TetrisApp o-- PauseMenu
+    TetrisApp o-- Renderer
     TetrisApp --> ClearAnimation : anim
     Renderer ..> Game : liest
     Renderer ..> PauseMenu : liest
@@ -198,7 +203,16 @@ Die Klassen verteilen sich auf fünf Module:
   in ms, am Ende der Animation `None`.
 - **Der `Renderer` liest nur.** Er bekommt `Game`, `PauseMenu` und
   `ClearAnimation` übergeben und verändert nichts daran.
-- `job` und `anim_job` in der `TetrisApp` enthalten die IDs der mit
+- **Zustand ist gekapselt.** Veränderlicher Zustand liegt in `_`-Attributen
+  (im Diagramm mit `-`); nach außen gibt es nur lesende Properties (ohne
+  Typ davor, z. B. `score int`). `Board.grid` liefert eine unveränderliche
+  Kopie. Ändern lässt sich das Spiel nur über seine Aktionen.
+- **Abhängigkeiten werden übergeben.** `Game` bekommt `Board` und `Bag`,
+  die `TetrisApp` bekommt `Renderer` und `PauseMenu` optional über den
+  Konstruktor (im Diagramm `o--`). Ohne Angabe legen sie Standardobjekte an.
+  So können Tests z. B. ein kleines Spielfeld oder einen Beutel mit festem
+  Zufall übergeben.
+- `_job` und `_anim_job` in der `TetrisApp` enthalten die IDs der mit
   `root.after()` geplanten Timer oder `None`, wenn gerade keiner geplant ist.
 
 ## Spielzustände
@@ -229,7 +243,7 @@ Nach dem Start übernimmt die Tk-Ereignisschleife. Sie ruft drei Callbacks der
 flowchart TD
     start(["Programmstart"]) --> main["main()<br/>root = tk.Tk()"]
     main --> init["TetrisApp.__init__()<br/>Renderer und PauseMenu anlegen,<br/>on_key an Tasten binden"]
-    init --> ng["new_game()<br/>Timer abbrechen, neues Game()"]
+    init --> ng["new_game()<br/>Timer abbrechen,<br/>neues Game(Board(cols, rows))"]
     ng --> sched["schedule()<br/>root.after(game.tick_delay, tick)"]
     sched --> loop{{"root.mainloop()<br/>Tk wartet auf Ereignisse"}}
 
@@ -280,7 +294,7 @@ flowchart TD
     sca["start_clear_animation()<br/>cancel_tick(),<br/>anim = ClearAnimation(...)"] --> anim
     anim["animate_clear()<br/>delay = anim.step()"] --> q{"delay?"}
     q -->|"70 ms: Blinkphase"| blink["anim.flash wechselt<br/>Reihen gefüllt / als Umriss"]
-    q -->|"40 ms: Auflösephase"| wipe["anim.wiped += 1<br/>Renderer blendet Spalten<br/>von der Mitte aus aus"]
+    q -->|"40 ms: Auflösephase"| wipe["je Seite eine Spalte mehr aufgelöst<br/>Renderer blendet Spalten<br/>von der Mitte aus aus"]
     blink --> again["draw()<br/>root.after(delay, animate_clear)"]
     wipe --> again
     q -->|"None: fertig"| fin["game.finish_clear()<br/>Reihen entfernen, Punkte und Level,<br/>spawn(), draw()"]
@@ -302,8 +316,9 @@ flowchart TD
     r -->|ja| ng["new_game()"]
     r -->|nein| blocked{"state ≠ PLAYING?"}
     blocked -->|"ja (Esc bei GAME_OVER: destroy())"| ignore["Taste ignorieren"]
-    blocked -->|nein| act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Esc / P menu.open()"]
-    blocked -->|"nein, Leertaste"| hd{"game.hard_drop()<br/>volle Reihen?"}
+    blocked -->|nein| gk["on_game_key()"]
+    gk --> act["← → game.move()<br/>↑ game.rotate()<br/>↓ game.soft_drop()<br/>Esc / P menu.open()"]
+    gk -->|Leertaste| hd{"game.hard_drop()<br/>volle Reihen?"}
     hd -->|ja| ksca["start_clear_animation()"]
     hd -->|nein| kdraw
     act --> kdraw["draw()"]

@@ -41,7 +41,7 @@ theme:
 
 nav:
   - Start: index.md
-  - Architektur und Abläufe: Diagramme.md
+  - Architektur und Abläufe: architecture.md
   - API-Referenz:
       - model – Spielregeln: api/model.md
       - menu – Pausenmenü: api/menu.md
