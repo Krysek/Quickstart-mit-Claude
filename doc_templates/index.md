@@ -26,8 +26,9 @@ Das Spiel ist in Logik und Oberfläche aufgeteilt:
 
 ## Weiterlesen
 
-- [Architektur und Abläufe](architecture.md): Klassendiagramm, Spielzustände und
-  die Abläufe von Spieltakt, Animation und Tastatur
+- [Architektur und Abläufe](architecture.md): UML-Diagramme, also Klassen-,
+  Zustands- und Sequenzdiagramme sowie die Abläufe von Spieltakt, Animation
+  und Tastatur
 - **API-Referenz**: alle Klassen und Methoden, erzeugt aus den Docstrings und
   Type Hints im Quelltext
     - [`model` – Spielregeln](api/model.md)

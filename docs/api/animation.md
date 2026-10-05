@@ -19,6 +19,19 @@ flowchart TD
     fin -->|"state = PLAYING"| sched["schedule()<br/>Spieltakt läuft wieder"]
 ```
 
+Die Phasen einer [`ClearAnimation`](#animation-clearanimation):
+
+```mermaid
+stateDiagram-v2
+    state "Blinken" as Blinken
+    state "Auflösen" as Aufloesen
+    [*] --> Blinken : ClearAnimation(rows, cols)
+    Blinken --> Blinken : step() → 70 ms, flash wechselt
+    Blinken --> Aufloesen : step() nach BLINK_FRAMES Schritten
+    Aufloesen --> Aufloesen : step() → 40 ms, je Seite eine Spalte mehr
+    Aufloesen --> [*] : step() → None, alle Spalten aufgelöst
+```
+
 <a id="animation"></a>
 
 ## Modul `animation`

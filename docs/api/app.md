@@ -51,6 +51,47 @@ flowchart TD
     tnext -->|nein| none["kein neuer Takt"]
 ```
 
+So arbeiten die Objekte zusammen, wenn ein Stein Reihen füllt:
+
+```mermaid
+sequenceDiagram
+    participant Tk as tkinter (root)
+    participant App as TetrisApp
+    participant G as Game
+    participant B as Board
+    participant A as ClearAnimation
+    participant R as Renderer
+
+    Tk->>App: tick()
+    App->>G: step()
+    G->>G: move(0, 1) → False, kein Platz
+    G->>G: lock()
+    G->>B: place(piece)
+    G->>B: full_rows()
+    B-->>G: Zeilennummern
+    Note over G: state = CLEARING
+    G-->>App: True
+    App->>App: start_clear_animation()
+    App->>Tk: after_cancel(_job)
+    App->>A: ClearAnimation(game.clearing, cols)
+    loop solange step() eine Wartezeit liefert
+        App->>A: step()
+        A-->>App: 70 oder 40 ms
+        App->>R: draw(game, menu, anim)
+        R->>A: flash, hides(col)
+        App->>Tk: after(delay, animate_clear)
+        Tk->>App: animate_clear()
+    end
+    App->>A: step()
+    A-->>App: None
+    App->>G: finish_clear()
+    G->>B: remove_rows(rows)
+    G->>G: spawn()
+    Note over G: state = PLAYING
+    App->>R: draw(game, menu, None)
+    App->>Tk: after(game.tick_delay, tick)
+```
+
 ## Tastatur
 
 ```mermaid
@@ -70,6 +111,36 @@ flowchart TD
     hd -->|ja| ksca["start_clear_animation()"]
     hd -->|nein| kdraw
     act --> kdraw["draw()"]
+```
+
+```mermaid
+sequenceDiagram
+    participant Tk as tkinter (root)
+    participant App as TetrisApp
+    participant M as PauseMenu
+    participant G as Game
+    participant R as Renderer
+
+    Tk->>App: on_key(event)
+    App->>M: is_open
+    M-->>App: False
+    App->>G: state
+    G-->>App: PLAYING
+    App->>App: on_game_key(key)
+    alt ← oder →
+        App->>G: move(-1 oder 1, 0)
+    else ↑
+        App->>G: rotate()
+    else ↓
+        App->>G: soft_drop()
+    else Esc oder P
+        App->>M: open()
+    else Leertaste
+        App->>G: hard_drop()
+        G-->>App: True bei vollen Reihen
+        Note over App,G: volle Reihen: start_clear_animation()<br/>wie im Spieltakt, statt draw()
+    end
+    App->>R: draw(game, menu, anim)
 ```
 
 <a id="quickstart_mit_claude"></a>

@@ -35,7 +35,7 @@ flowchart TB
     view -.-> tk
 ```
 
-Ein Pfeil bedeutet „importiert“; ein Pfeil auf den Kasten heißt, dass alle
+Paketdiagramm (Ersatz): Ein Pfeil bedeutet „importiert“; ein Pfeil auf den Kasten heißt, dass alle
 drei Module darin importiert werden. Nur `view.py` und
 `Quickstart_mit_Claude.py` hängen von tkinter ab (gestrichelt). Alles im Kasten
 „ohne tkinter“ lässt sich ohne Fenster testen.
@@ -53,8 +53,9 @@ drei Module darin importiert werden. Nur `view.py` und
 
 ## Weiterlesen
 
-- [Architektur und Abläufe](architecture.md): Klassendiagramm, Spielzustände und
-  die Abläufe von Spieltakt, Animation und Tastatur
+- [Architektur und Abläufe](architecture.md): UML-Diagramme, also Klassen-,
+  Zustands- und Sequenzdiagramme sowie die Abläufe von Spieltakt, Animation
+  und Tastatur
 - **API-Referenz**: alle Klassen und Methoden, erzeugt aus den Docstrings und
   Type Hints im Quelltext
     - [`model` – Spielregeln](api/model.md)

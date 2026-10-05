@@ -6,6 +6,21 @@ Dokumentation zu den Modulen in `Quickstart mit Claude/`.
 Die Diagramme sind in [Mermaid](https://mermaid.js.org/) geschrieben und werden
 z. B. auf GitHub und in VS Code direkt als Grafik angezeigt.
 
+Die Software ist objektorientiert und wird deshalb mit UML beschrieben:
+
+| UML-Diagramm | Abschnitt | Umsetzung in Mermaid |
+|---|---|---|
+| Paketdiagramm | „Module und Abhängigkeiten“ | ersatzweise `flowchart` mit Subgraph |
+| Klassendiagramm | „Klassendiagramm“ | `classDiagram` |
+| Zustandsdiagramm | „Spielzustände“, „Zustände der Lösch-Animation“ | `stateDiagram-v2` |
+| Sequenzdiagramm | „Zusammenspiel der Objekte“ | `sequenceDiagram` |
+| Aktivitätsdiagramm | „Grober Ablauf“ und die Details dazu | ersatzweise `flowchart` |
+
+Mermaid kennt kein Paket- und kein Aktivitätsdiagramm. Die Ersatzdiagramme
+halten sich an deren Bedeutung: Pfeile zwischen Modulen sind
+Import-Abhängigkeiten, Rauten sind Entscheidungen, abgerundete Kästen Start
+und Ende.
+
 ## Module und Abhängigkeiten
 
 <!-- --8<-- [start:module] -->
@@ -31,7 +46,7 @@ flowchart TB
     view -.-> tk
 ```
 
-Ein Pfeil bedeutet „importiert“; ein Pfeil auf den Kasten heißt, dass alle
+Paketdiagramm (Ersatz): Ein Pfeil bedeutet „importiert“; ein Pfeil auf den Kasten heißt, dass alle
 drei Module darin importiert werden. Nur `view.py` und
 `Quickstart_mit_Claude.py` hängen von tkinter ab (gestrichelt). Alles im Kasten
 „ohne tkinter“ lässt sich ohne Fenster testen.
@@ -142,29 +157,31 @@ classDiagram
         }
     }
 
-    class TetrisApp {
-        +Tk root
-        +int cols
-        +int rows
-        +Renderer renderer
-        +PauseMenu menu
-        -Game _game
-        -ClearAnimation _anim
-        -str _job
-        -str _anim_job
-        +TetrisApp(root, cols, rows, renderer, menu)
-        +new_game()
-        +cancel_tick()
-        +cancel_timers()
-        +draw()
-        +schedule()
-        +tick()
-        +start_clear_animation()
-        +animate_clear()
-        +on_key(event)
-        +on_game_key(key)
-        +on_menu_key(key)
-        +select_menu_item()
+    namespace Quickstart_mit_Claude {
+        class TetrisApp {
+            +Tk root
+            +int cols
+            +int rows
+            +Renderer renderer
+            +PauseMenu menu
+            -Game _game
+            -ClearAnimation _anim
+            -str _job
+            -str _anim_job
+            +TetrisApp(root, cols, rows, renderer, menu)
+            +new_game()
+            +cancel_tick()
+            +cancel_timers()
+            +draw()
+            +schedule()
+            +tick()
+            +start_clear_animation()
+            +animate_clear()
+            +on_key(event)
+            +on_game_key(key)
+            +on_menu_key(key)
+            +select_menu_item()
+        }
     }
 
     Game o-- Board
@@ -175,7 +192,7 @@ classDiagram
     TetrisApp *-- Game
     TetrisApp o-- PauseMenu
     TetrisApp o-- Renderer
-    TetrisApp --> ClearAnimation : anim
+    TetrisApp "1" --> "0..1" ClearAnimation : _anim
     Renderer ..> Game : liest
     Renderer ..> PauseMenu : liest
     Renderer ..> ClearAnimation : liest
@@ -212,6 +229,14 @@ Die Klassen verteilen sich auf fünf Module:
   Konstruktor (im Diagramm `o--`). Ohne Angabe legen sie Standardobjekte an.
   So können Tests z. B. ein kleines Spielfeld oder einen Beutel mit festem
   Zufall übergeben.
+- **UML-Notation:** `+` öffentlich, `-` privat (in Python: `_`-Präfix),
+  `$` statisch. Rauten: `*--` Komposition (das Ganze erzeugt den Teil),
+  `o--` Aggregation (der Teil kann übergeben werden), gestrichelt `..>`
+  Abhängigkeit. Multiplizitäten stehen nur, wo sie nicht 1 sind: Eine
+  `TetrisApp` hat höchstens eine laufende `ClearAnimation`.
+- **Abweichung von UML:** Properties stehen als `name typ` ohne Klammern.
+  In UML wären es Attribute mit `{readOnly}`; diesen Zusatz kann Mermaid
+  nicht darstellen.
 - `_job` und `_anim_job` in der `TetrisApp` enthalten die IDs der mit
   `root.after()` geplanten Timer oder `None`, wenn gerade keiner geplant ist.
 
@@ -233,9 +258,113 @@ Die Pause ist kein Spielzustand: Sie gehört zur Oberfläche und steckt in
 `PauseMenu.is_open`. Das `Game` merkt davon nichts, die `TetrisApp` ruft
 während der Pause einfach `game.step()` nicht auf.
 
+## Zustände der Lösch-Animation
+
+<!-- --8<-- [start:animation_zustaende] -->
+```mermaid
+stateDiagram-v2
+    state "Blinken" as Blinken
+    state "Auflösen" as Aufloesen
+    [*] --> Blinken : ClearAnimation(rows, cols)
+    Blinken --> Blinken : step() → 70 ms, flash wechselt
+    Blinken --> Aufloesen : step() nach BLINK_FRAMES Schritten
+    Aufloesen --> Aufloesen : step() → 40 ms, je Seite eine Spalte mehr
+    Aufloesen --> [*] : step() → None, alle Spalten aufgelöst
+```
+<!-- --8<-- [end:animation_zustaende] -->
+
+Die Phasen sind kein eigenes Attribut, sondern ergeben sich aus dem
+internen Schrittzähler. Bei 10 Spalten dauert die Animation
+6 × 70 ms + 5 × 40 ms = 620 ms.
+
+## Zusammenspiel der Objekte
+
+### Spieltakt mit vollen Reihen
+
+Ein Stein setzt auf, füllt eine Reihe, und die Reihe wird nach der Animation
+gelöscht.
+
+<!-- --8<-- [start:sequenz_loeschen] -->
+```mermaid
+sequenceDiagram
+    participant Tk as tkinter (root)
+    participant App as TetrisApp
+    participant G as Game
+    participant B as Board
+    participant A as ClearAnimation
+    participant R as Renderer
+
+    Tk->>App: tick()
+    App->>G: step()
+    G->>G: move(0, 1) → False, kein Platz
+    G->>G: lock()
+    G->>B: place(piece)
+    G->>B: full_rows()
+    B-->>G: Zeilennummern
+    Note over G: state = CLEARING
+    G-->>App: True
+    App->>App: start_clear_animation()
+    App->>Tk: after_cancel(_job)
+    App->>A: ClearAnimation(game.clearing, cols)
+    loop solange step() eine Wartezeit liefert
+        App->>A: step()
+        A-->>App: 70 oder 40 ms
+        App->>R: draw(game, menu, anim)
+        R->>A: flash, hides(col)
+        App->>Tk: after(delay, animate_clear)
+        Tk->>App: animate_clear()
+    end
+    App->>A: step()
+    A-->>App: None
+    App->>G: finish_clear()
+    G->>B: remove_rows(rows)
+    G->>G: spawn()
+    Note over G: state = PLAYING
+    App->>R: draw(game, menu, None)
+    App->>Tk: after(game.tick_delay, tick)
+```
+<!-- --8<-- [end:sequenz_loeschen] -->
+
+### Tastendruck im laufenden Spiel
+
+<!-- --8<-- [start:sequenz_taste] -->
+```mermaid
+sequenceDiagram
+    participant Tk as tkinter (root)
+    participant App as TetrisApp
+    participant M as PauseMenu
+    participant G as Game
+    participant R as Renderer
+
+    Tk->>App: on_key(event)
+    App->>M: is_open
+    M-->>App: False
+    App->>G: state
+    G-->>App: PLAYING
+    App->>App: on_game_key(key)
+    alt ← oder →
+        App->>G: move(-1 oder 1, 0)
+    else ↑
+        App->>G: rotate()
+    else ↓
+        App->>G: soft_drop()
+    else Esc oder P
+        App->>M: open()
+    else Leertaste
+        App->>G: hard_drop()
+        G-->>App: True bei vollen Reihen
+        Note over App,G: volle Reihen: start_clear_animation()<br/>wie im Spieltakt, statt draw()
+    end
+    App->>R: draw(game, menu, anim)
+```
+<!-- --8<-- [end:sequenz_taste] -->
+
+Die `Game`-Methoden prüfen selbst, ob der Zug erlaubt ist. Die `TetrisApp`
+zeichnet danach immer neu, auch wenn sich nichts geändert hat.
+
 ## Grober Ablauf
 
-Nach dem Start übernimmt die Tk-Ereignisschleife. Sie ruft drei Callbacks der
+Aktivitätsdiagramm (Ersatz): Nach dem Start übernimmt die Tk-Ereignisschleife. Sie ruft drei Callbacks der
 `TetrisApp` auf, die sich über Timer (`root.after`) wieder anmelden.
 
 <!-- --8<-- [start:ablauf] -->
@@ -264,6 +393,8 @@ flowchart TD
 
 ### Detail: Spieltakt `tick()`
 
+Aktivitätsdiagramm (Ersatz) für den Ablauf in der Methode.
+
 <!-- --8<-- [start:tick] -->
 ```mermaid
 flowchart TD
@@ -288,6 +419,8 @@ flowchart TD
 
 ### Detail: Lösch-Animation `animate_clear()`
 
+Aktivitätsdiagramm (Ersatz) für den Ablauf in der Methode.
+
 <!-- --8<-- [start:animation] -->
 ```mermaid
 flowchart TD
@@ -303,6 +436,8 @@ flowchart TD
 <!-- --8<-- [end:animation] -->
 
 ### Detail: Tastatur `on_key()`
+
+Aktivitätsdiagramm (Ersatz) für den Ablauf in der Methode.
 
 <!-- --8<-- [start:tastatur] -->
 ```mermaid

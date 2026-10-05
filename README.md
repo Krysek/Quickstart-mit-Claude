@@ -40,7 +40,7 @@ Entstanden als Quickstart-Projekt zum Programmieren mit
 - Spiellogik getrennt von der Oberfläche und mit **Unit-Tests** abgesichert
 - Vollständig mit **Type Hints** versehen (geprüft mit `mypy --strict`)
 - Docstrings, Typ-Hinweise und Fehlerbehandlung geprüft mit **Ruff**
-- **Dokumentation** mit Diagrammen und API-Referenz, direkt auf GitHub lesbar
+- **Dokumentation** mit UML-Diagrammen und API-Referenz, direkt auf GitHub lesbar
   und zusätzlich als Website (MkDocs)
 
 ## 🚀 Starten
@@ -230,7 +230,7 @@ Ereignisse und ruft in der `TetrisApp` drei Callbacks auf:
 - `on_key()` – verarbeitet die Tastatureingaben
 - `animate_clear()` – spielt die Animation beim Löschen von Reihen ab
 
-Ausführliche Klassen- und Ablaufdiagramme gibt es in
+UML-Diagramme (Klassen, Zustände, Sequenzen, Abläufe) gibt es in
 [`docs/architecture.md`](docs/architecture.md), alle Klassen und Methoden in der
 API-Referenz, die über [`docs/index.md`](docs/index.md) erreichbar ist.
 
